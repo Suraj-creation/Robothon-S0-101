@@ -4,23 +4,33 @@ This repository contains the **end-to-end pipeline** for the hackathon’s **thr
 
 ### ACT training status — all three tasks
 
-**Separate ACT policies were trained for every Robothon task:** **pick & place (Task 1)**, **charger plug (Task 2)**, and **liquid pour (Task 3)** — each with its own `lerobot-train` run (`scripts/task*_train.sh` or chained `./scripts/train_all.sh`), using the collected demos and matching hyperparameters in `scripts/task*_env.sh`. Optional **GPU retraining / refinement** uses the same ACT architecture via [`cloud/lerobot_train_colab.ipynb`](cloud/lerobot_train_colab.ipynb) with datasets on the Hub.
+**Separate ACT policies are defined for every Robothon task:** **pick & place (Task 1)**, **charger plug (Task 2)**, and **liquid pour (Task 3)** — each with its own `lerobot-train` run (`scripts/task*_train.sh` or chained `./scripts/train_all.sh`), using the collected demos and matching hyperparameters in `scripts/task*_env.sh`. Optional **GPU retraining / refinement** uses the same ACT architecture via [`cloud/lerobot_train_colab.ipynb`](cloud/lerobot_train_colab.ipynb) with datasets on the Hub.
 
-**Where the weights live:**
+**Weights in this repo (`models/`) vs Hugging Face Model repos:**
 
-| Task | Policy run name (local `outputs/`) | Published in this GitHub repo |
-|------|-------------------------------------|-------------------------------|
-| Task 1 — Pick | `outputs/act_pick_v1/` | Yes — [`models/act_pick_v1/`](models/act_pick_v1/) (~82 MB) |
-| Task 2 — Plug | `outputs/act_plug_v1/` | Copy `checkpoints/last/pretrained_model` → `models/act_plug_v1/` if you want it on GitHub (same layout as Task 1) |
-| Task 3 — Pour | `outputs/act_pour_v1/` | Same — `models/act_pour_v1/` |
+| Task | Hugging Face Model (source) | In this GitHub repo |
+|------|------------------------------|---------------------|
+| Task 1 — Pick | [`SurajCreation/act_pick_v1`](https://huggingface.co/SurajCreation/act_pick_v1) | Yes — [`models/act_pick_v1/`](models/act_pick_v1/) (**Git LFS** for `*.safetensors`) |
+| Task 2 — Plug | [`SurajCreation/act_plug_v1`](https://huggingface.co/SurajCreation/act_plug_v1) (upload when ready) | Add via sync or copy `pretrained_model` → [`models/act_plug_v1/`](models/act_plug_v1/) |
+| Task 3 — Pour | [`SurajCreation/act_pour_v1`](https://huggingface.co/SurajCreation/act_pour_v1) (upload when ready) | Same → [`models/act_pour_v1/`](models/act_pour_v1/) |
 
-Training artifacts under `outputs/` remain **gitignored** by default (large checkpoints). Only bundles you explicitly copy into [`models/`](models/) are versioned here. You can also host policies as **Hugging Face Models** (e.g. after Colab) for `huggingface-cli download`.
+**Download / refresh checkpoints from Hugging Face into `models/`** (set `HF_TOKEN` if repos are private):
+
+```bash
+export HF_HUB_DISABLE_XET=1
+export HF_TOKEN=...   # read token; never commit
+.conda/bin/python scripts/sync_models_from_hf.py
+```
+
+Use `--pick-only`, `--plug-only`, or `--pour-only` for one task; add `--repo-id ORG/name` to override the Hub repo. Then commit and push — large weights use **Git LFS** (`git lfs install`; after clone run **`git lfs pull`**).
+
+Training artifacts under `outputs/` remain **gitignored**. Only trees under [`models/`](models/) are versioned here. Details: [`models/README.md`](models/README.md).
 
 **Public repo:** [github.com/Suraj-creation/Robothon-S0-101](https://github.com/Suraj-creation/Robothon-S0-101)
 
-**Hugging Face datasets (mirrors of local demos):** [SurajCreation — dataset activity](https://huggingface.co/SurajCreation/activity/datasets) — includes [`so101_pick_v1`](https://huggingface.co/datasets/SurajCreation/so101_pick_v1), [`so101_plug_v1`](https://huggingface.co/datasets/SurajCreation/so101_plug_v1), and [`so101_pour_v1`](https://huggingface.co/datasets/SurajCreation/so101_pour_v1).
+**Hugging Face datasets (teleop demos):** [SurajCreation — datasets](https://huggingface.co/SurajCreation/activity/datasets) — [`so101_pick_v1`](https://huggingface.co/datasets/SurajCreation/so101_pick_v1), [`so101_plug_v1`](https://huggingface.co/datasets/SurajCreation/so101_plug_v1), [`so101_pour_v1`](https://huggingface.co/datasets/SurajCreation/so101_pour_v1).
 
-**ACT weights on GitHub:** Task 1 is vendored as a full LeRobot `pretrained_model` bundle in [`models/act_pick_v1/`](models/act_pick_v1/) (~82 MB). Use `--policy.path=models/act_pick_v1` after clone. Tasks 2–3 use the same file layout under `outputs/act_*_v1/checkpoints/last/pretrained_model` locally; add them under `models/act_plug_v1` and `models/act_pour_v1` to mirror on GitHub. Details: [`models/README.md`](models/README.md).
+**Autonomous runs from vendored `models/`:** [`scripts/run_full_demo_github_models.sh`](scripts/run_full_demo_github_models.sh) (use `--available-only` if plug/pour weights are missing). Single-task: [`scripts/task1_autonomous_github_models.sh`](scripts/task1_autonomous_github_models.sh), [`scripts/task2_autonomous_github_models.sh`](scripts/task2_autonomous_github_models.sh).
 
 ---
 
@@ -197,13 +207,21 @@ For each task the loop is the same:
 
 ## Autonomous execution (all three tasks)
 
-** Preconditions:** Trained checkpoints exist under `outputs/act_*_v1/checkpoints/last/pretrained_model` (names match your `task*_env.sh` `TASK*_OUTPUT_DIR`).
+**Using local training outputs (`outputs/…/pretrained_model`):** checkpoints exist under `outputs/act_*_v1/checkpoints/last/pretrained_model` (names match `task*_env.sh`).
 
 From repo root:
 
 ```bash
 cd /path/to/FInal_robothon
 ./scripts/run_full_demo.sh
+```
+
+**Using vendored checkpoints from [`models/`](models/)** (after `git lfs pull`, or HF sync into `models/act_*_v1/`):
+
+```bash
+./scripts/run_full_demo_github_models.sh
+# Plug/pour folders missing? Same script with partial phases:
+./scripts/run_full_demo_github_models.sh --available-only
 ```
 
 High-level behavior (see `AUTOMATION_PLAN_M4.md` §11.3):
@@ -213,10 +231,16 @@ High-level behavior (see `AUTOMATION_PLAN_M4.md` §11.3):
 3. `go_home pour` → run pour policy  
 4. Final `go_home`
 
-**Task 1 only** (single-policy autonomous pick):
+**Task 1 only** (checkpoint under `outputs/`):
 
 ```bash
 ./scripts/task1_autonomous_pick_place.sh --yes
+```
+
+**Task 1 only** (policy under `models/act_pick_v1`, e.g. after clone / HF):
+
+```bash
+./scripts/task1_autonomous_github_models.sh --yes
 ```
 
 If `lerobot-train` is still running and you accept shared CPU load:

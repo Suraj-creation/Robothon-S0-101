@@ -1,16 +1,23 @@
 #!/usr/bin/env bash
-# Robothon FULL AUTONOMOUS DEMO — Pick → Plug → Pour using policies under models/
-# (Same sequence as run_full_demo.sh; checkpoints come from Hugging Face sync / GitHub,
-# not outputs/act_*_v1/checkpoints/last/pretrained_model.)
+# Robothon FULL AUTONOMOUS DEMO — Pick → Plug → Pour.
+#
+# Policy resolution (first match wins for each task):
+#   1) models/act_<pick|plug|pour>_v1/          (HF sync / GitHub clone)
+#   2) outputs/act_<task>_v1/checkpoints/last/pretrained_model  (local training)
 #
 # Prerequisites:
-#   models/act_pick_v1/, models/act_plug_v1/, models/act_pour_v1/  (LeRobot pretrained_model layout)
+#   Pick checkpoint required: models/act_pick_v1 or outputs/act_pick_v1/.../pretrained_model
+#   Plug & pour: required unless you pass --available-only (then missing phases are skipped).
 #   scripts/home_pose.json
 #
-# Populate models/:
+# Populate models/ from Hub when repos exist:
 #   HF_HUB_DISABLE_XET=1 HF_TOKEN=... .conda/bin/python scripts/sync_models_from_hf.py
 #
-# Run: ./scripts/run_full_demo_github_models.sh
+# Run:
+#   ./scripts/run_full_demo_github_models.sh
+# With only pick trained / synced (skip missing plug & pour):
+#   ./scripts/run_full_demo_github_models.sh --available-only
+#   ./scripts/run_full_demo_github_models.sh -a --yes
 
 set -e
 SCRIPT_DIR="$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
@@ -18,20 +25,65 @@ REPO_ROOT="$( cd -- "${SCRIPT_DIR}/.." &> /dev/null && pwd )"
 LEROBOT="${REPO_ROOT}/.conda/bin"
 export PATH="${LEROBOT}:${PATH}"
 
+AVAILABLE_ONLY=0
+SKIP_CONFIRM=0
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    --available-only|-a) AVAILABLE_ONLY=1; shift ;;
+    --yes|-y) SKIP_CONFIRM=1; shift ;;
+    -h|--help)
+      sed -n '1,20p' "$0" | tail -n +2
+      exit 0
+      ;;
+    *)
+      echo "Unknown option: $1 (try --help)" >&2
+      exit 1
+      ;;
+  esac
+done
+
 source "${SCRIPT_DIR}/task1_env.sh"
 
-PICK_POLICY="${REPO_ROOT}/models/act_pick_v1"
-PLUG_POLICY="${REPO_ROOT}/models/act_plug_v1"
-POUR_POLICY="${REPO_ROOT}/models/act_pour_v1"
 HOME_JSON="${SCRIPT_DIR}/home_pose.json"
 
+# shellcheck disable=SC2317
+resolve_policy_dir() {
+  local task="$1"
+  local m="${REPO_ROOT}/models/act_${task}_v1"
+  local o="${REPO_ROOT}/outputs/act_${task}_v1/checkpoints/last/pretrained_model"
+  if [[ -d "${m}" ]]; then
+    echo "${m}"
+    return 0
+  fi
+  if [[ -d "${o}" ]]; then
+    echo "${o}"
+    return 0
+  fi
+  echo ""
+}
+
+PICK_POLICY="$(resolve_policy_dir pick)"
+PLUG_POLICY="$(resolve_policy_dir plug)"
+POUR_POLICY="$(resolve_policy_dir pour)"
+
 missing=0
-for p in "${PICK_POLICY}" "${PLUG_POLICY}" "${POUR_POLICY}"; do
-  if [[ ! -d "${p}" ]]; then
-    echo "  [missing] ${p}"
+if [[ -z "${PICK_POLICY}" ]]; then
+  echo "  [missing pick] ${REPO_ROOT}/models/act_pick_v1"
+  echo "              or ${REPO_ROOT}/outputs/act_pick_v1/checkpoints/last/pretrained_model"
+  missing=1
+fi
+if [[ "${AVAILABLE_ONLY}" -eq 0 ]]; then
+  if [[ -z "${PLUG_POLICY}" ]]; then
+    echo "  [missing plug] ${REPO_ROOT}/models/act_plug_v1"
+    echo "              or ${REPO_ROOT}/outputs/act_plug_v1/checkpoints/last/pretrained_model"
     missing=1
   fi
-done
+  if [[ -z "${POUR_POLICY}" ]]; then
+    echo "  [missing pour] ${REPO_ROOT}/models/act_pour_v1"
+    echo "              or ${REPO_ROOT}/outputs/act_pour_v1/checkpoints/last/pretrained_model"
+    missing=1
+  fi
+fi
 if [[ ! -f "${HOME_JSON}" ]]; then
   echo "  [missing] ${HOME_JSON}"
   echo "  (run: .conda/bin/python scripts/capture_home.py)"
@@ -39,23 +91,31 @@ if [[ ! -f "${HOME_JSON}" ]]; then
 fi
 if [[ "${missing}" -eq 1 ]]; then
   echo ""
-  echo "ERROR: pre-requisites not met. Sync HF models: scripts/sync_models_from_hf.py"
+  echo "ERROR: pre-requisites not met."
+  echo "  Train locally (outputs/...) and/or sync HF: .conda/bin/python scripts/sync_models_from_hf.py"
+  echo "  Or run pick-only / partial pipeline: $0 --available-only"
   exit 1
+fi
+
+PLUG_LINE="  Phase 2: Charger Plug    (30s)   ${PLUG_POLICY:-SKIPPED — no checkpoint}"
+POUR_LINE="  Phase 3: Liquid Pour     (30s)   ${POUR_POLICY:-SKIPPED — no checkpoint}"
+if [[ "${AVAILABLE_ONLY}" -eq 1 ]]; then
+  if [[ -z "${PLUG_POLICY}" ]]; then PLUG_LINE="  Phase 2: Charger Plug    — SKIPPED (no checkpoint)"; fi
+  if [[ -z "${POUR_POLICY}" ]]; then POUR_LINE="  Phase 3: Liquid Pour     — SKIPPED (no checkpoint)"; fi
 fi
 
 cat <<INFO
 ==========================================================
-  ROBOTHON FULL AUTONOMOUS DEMO (models/ checkpoints)
+  ROBOTHON FULL AUTONOMOUS DEMO (models/ or outputs/)
 ==========================================================
   Phase 1: Pick & Place    (25s)   ${PICK_POLICY}
-  Phase 2: Charger Plug    (30s)   ${PLUG_POLICY}
-  Phase 3: Liquid Pour     (30s)   ${POUR_POLICY}
+${PLUG_LINE}
+${POUR_LINE}
+  Mode: $([[ "${AVAILABLE_ONLY}" -eq 1 ]] && echo 'partial (--available-only)' || echo 'full (all checkpoints required)')
 
   HOME pose:     ${HOME_JSON}
-  Eval datasets: local/so101_*_hf_autorun (auto-saved for review)
+  Eval datasets: local/eval_so101_*_hf_autorun (LeRobot requires eval_ prefix with --policy.path)
   Cameras:       overhead idx ${OVERHEAD_INDEX}, wrist idx ${WRIST_INDEX}
-
-  TOTAL: ~2 minutes wall-clock.
 
   Initial state required:
     - Cube in PICK_ZONE
@@ -66,8 +126,10 @@ cat <<INFO
 ==========================================================
 INFO
 
-read -r -p "Start the full autonomous demo? [y/N] " ans
-[[ "${ans}" =~ ^[Yy]$ ]] || { echo "Aborted."; exit 0; }
+if [[ "${SKIP_CONFIRM}" -eq 0 ]]; then
+  read -r -p "Start the autonomous demo? [y/N] " ans
+  [[ "${ans}" =~ ^[Yy]$ ]] || { echo "Aborted."; exit 0; }
+fi
 
 deploy_phase() {
   local phase_name="$1"
@@ -123,23 +185,31 @@ echo "[start] $(date '+%H:%M:%S') — beginning autonomous sequence"
 go_home pick
 
 deploy_phase "Pick & Place" "${PICK_POLICY}" \
-  "local/so101_pick_v1_hf_autorun" \
+  "local/eval_so101_pick_v1_hf_autorun" \
   "Pick the cube and place it on the target." \
   25
 
-go_home plug
+if [[ -n "${PLUG_POLICY}" ]]; then
+  go_home plug
+  deploy_phase "Charger Plug" "${PLUG_POLICY}" \
+    "local/eval_so101_plug_v1_hf_autorun" \
+    "Plug the charger connector into the socket." \
+    30
+else
+  echo ""
+  echo "[skip] Plug phase — no checkpoint (train task 2 or sync HF act_plug_v1)."
+fi
 
-deploy_phase "Charger Plug" "${PLUG_POLICY}" \
-  "local/so101_plug_v1_hf_autorun" \
-  "Plug the charger connector into the socket." \
-  30
-
-go_home pour
-
-deploy_phase "Liquid Pour" "${POUR_POLICY}" \
-  "local/so101_pour_v1_hf_autorun" \
-  "Pour the contents of the bottle into the cup." \
-  30
+if [[ -n "${POUR_POLICY}" ]]; then
+  go_home pour
+  deploy_phase "Liquid Pour" "${POUR_POLICY}" \
+    "local/eval_so101_pour_v1_hf_autorun" \
+    "Pour the contents of the bottle into the cup." \
+    30
+else
+  echo ""
+  echo "[skip] Pour phase — no checkpoint (train task 3 or sync HF act_pour_v1)."
+fi
 
 go_home
 
@@ -147,8 +217,8 @@ echo ""
 echo "=========================================================="
 echo "  AUTONOMOUS DEMO COMPLETE — $(date '+%H:%M:%S')"
 echo "=========================================================="
-echo "  Review the recorded runs:"
-echo "    - local/so101_pick_v1_hf_autorun"
-echo "    - local/so101_plug_v1_hf_autorun"
-echo "    - local/so101_pour_v1_hf_autorun"
+echo "  Recordings (phases that ran):"
+echo "    - local/eval_so101_pick_v1_hf_autorun"
+if [[ -n "${PLUG_POLICY}" ]]; then echo "    - local/eval_so101_plug_v1_hf_autorun"; fi
+if [[ -n "${POUR_POLICY}" ]]; then echo "    - local/eval_so101_pour_v1_hf_autorun"; fi
 echo "=========================================================="

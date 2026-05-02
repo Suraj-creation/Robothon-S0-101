@@ -78,7 +78,7 @@ cat <<INFO
   Phase 3: Liquid Pour     (30s)   ${POUR_POLICY##*/outputs/}
 
   HOME pose:     ${HOME_JSON}
-  Eval datasets: local/so101_*_eval (auto-saved for review)
+  Eval datasets: local/eval_so101_*_autorun (auto-saved for review)
   Cameras:       overhead idx ${OVERHEAD_INDEX}, wrist idx ${WRIST_INDEX}
 
   TOTAL: ~2 minutes wall-clock.
@@ -156,21 +156,21 @@ echo "[start] $(date '+%H:%M:%S') — beginning autonomous sequence"
 go_home pick
 
 deploy_phase "Pick & Place" "${PICK_POLICY}" \
-  "local/so101_pick_v1_autorun" \
+  "local/eval_so101_pick_v1_autorun" \
   "Pick the cube and place it on the target." \
   25
 
 go_home plug
 
 deploy_phase "Charger Plug" "${PLUG_POLICY}" \
-  "local/so101_plug_v1_autorun" \
+  "local/eval_so101_plug_v1_autorun" \
   "Plug the charger connector into the socket." \
   30
 
 go_home pour
 
 deploy_phase "Liquid Pour" "${POUR_POLICY}" \
-  "local/so101_pour_v1_autorun" \
+  "local/eval_so101_pour_v1_autorun" \
   "Pour the contents of the bottle into the cup." \
   30
 
@@ -181,9 +181,9 @@ echo "=========================================================="
 echo "  AUTONOMOUS DEMO COMPLETE — $(date '+%H:%M:%S')"
 echo "=========================================================="
 echo "  Review the recorded runs:"
-echo "    - local/so101_pick_v1_autorun"
-echo "    - local/so101_plug_v1_autorun"
-echo "    - local/so101_pour_v1_autorun"
+echo "    - local/eval_so101_pick_v1_autorun"
+echo "    - local/eval_so101_plug_v1_autorun"
+echo "    - local/eval_so101_pour_v1_autorun"
 echo ""
 echo "  Each phase saved 1 episode with both camera views and the policy"
 echo "  actions. Use lerobot-replay to play back any phase frame-by-frame."

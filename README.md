@@ -6,6 +6,8 @@ This repository contains the **end-to-end pipeline** for the hackathon’s **thr
 
 **Hugging Face datasets (mirrors of local demos):** [SurajCreation — dataset activity](https://huggingface.co/SurajCreation/activity/datasets) — includes [`so101_pick_v1`](https://huggingface.co/datasets/SurajCreation/so101_pick_v1), [`so101_plug_v1`](https://huggingface.co/datasets/SurajCreation/so101_plug_v1), and [`so101_pour_v1`](https://huggingface.co/datasets/SurajCreation/so101_pour_v1).
 
+**Published Task 1 ACT weights (this repo):** [`models/act_pick_v1/`](models/act_pick_v1/) — LeRobot `pretrained_model` bundle (~82 MB). Use `--policy.path=models/act_pick_v1` after clone. See [`models/README.md`](models/README.md).
+
 ---
 
 ## Table of contents
@@ -118,6 +120,7 @@ This is the **“press go once”** path for the competition narrative: operator
 | [`SO101_Task1_PickPlace_Refined_Architecture.md`](SO101_Task1_PickPlace_Refined_Architecture.md) | Early architecture notes (superseded by automation plan for Mac path) |
 | [`environment.yml`](environment.yml) | Conda-style dependency snapshot |
 | [`scripts/`](scripts/) | All shell entrypoints, `go_home.py`, `capture_home.py`, `camera_probe.py`, full-demo runners |
+| [`models/`](models/) | **Published ACT checkpoints** (e.g. Task 1 `act_pick_v1`) for GitHub — not the gitignored `outputs/` training tree |
 | [`cloud/`](cloud/) | Colab notebook, cloud training docs, Modal script |
 | [`yolo11n.pt`](yolo11n.pt) | Pretrained YOLO11n weights for optional gating |
 

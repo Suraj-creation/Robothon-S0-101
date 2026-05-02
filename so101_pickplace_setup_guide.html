@@ -1,0 +1,690 @@
+
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--font-mono,'Courier New',monospace)}
+.wrap{display:flex;gap:0;min-height:600px}
+.sidebar{width:220px;min-width:220px;border-right:0.5px solid var(--color-border-tertiary);padding:16px 0;position:sticky;top:0;max-height:90vh;overflow-y:auto;flex-shrink:0}
+.sidebar-title{font-size:10px;letter-spacing:0.08em;color:var(--color-text-tertiary);padding:0 16px 10px;text-transform:uppercase;font-family:var(--font-sans)}
+.nav-item{display:flex;align-items:center;gap:8px;padding:6px 16px;cursor:pointer;font-size:12px;color:var(--color-text-secondary);font-family:var(--font-sans);border-left:2px solid transparent;transition:all 0.15s;line-height:1.3}
+.nav-item:hover{background:var(--color-background-secondary);color:var(--color-text-primary)}
+.nav-item.active{border-left:2px solid #1D9E75;color:#0F6E56;background:var(--color-background-secondary);font-weight:500}
+.nav-num{font-size:10px;min-width:18px;height:18px;border-radius:50%;border:0.5px solid var(--color-border-secondary);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.nav-item.active .nav-num{background:#1D9E75;border-color:#1D9E75;color:#fff}
+.nav-item.done .nav-num{background:#5DCAA5;border-color:#5DCAA5;color:#fff}
+.content{flex:1;padding:24px 28px;overflow-y:auto;max-height:90vh}
+.phase{display:none}
+.phase.active{display:block}
+.phase-header{margin-bottom:20px}
+.phase-badge{display:inline-flex;align-items:center;gap:6px;font-size:11px;font-family:var(--font-sans);background:var(--color-background-secondary);border:0.5px solid var(--color-border-tertiary);border-radius:20px;padding:3px 10px;color:var(--color-text-secondary);margin-bottom:10px}
+.phase-badge .dot{width:6px;height:6px;border-radius:50%;background:#1D9E75}
+h1{font-size:20px;font-weight:500;color:var(--color-text-primary);font-family:var(--font-sans);margin-bottom:6px}
+.phase-desc{font-size:13px;color:var(--color-text-secondary);font-family:var(--font-sans);line-height:1.6;margin-bottom:20px;padding-bottom:16px;border-bottom:0.5px solid var(--color-border-tertiary)}
+.step{margin-bottom:20px}
+.step-label{display:flex;align-items:flex-start;gap:10px;margin-bottom:8px}
+.step-num{min-width:22px;height:22px;border-radius:50%;border:0.5px solid var(--color-border-secondary);display:flex;align-items:center;justify-content:center;font-size:11px;color:var(--color-text-secondary);font-family:var(--font-sans);flex-shrink:0;margin-top:1px}
+.step-title{font-size:14px;font-weight:500;color:var(--color-text-primary);font-family:var(--font-sans);line-height:1.4}
+.step-body{margin-left:32px}
+.step-body p{font-size:13px;color:var(--color-text-secondary);font-family:var(--font-sans);line-height:1.65;margin-bottom:8px}
+pre{background:var(--color-background-secondary);border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-md);padding:12px 14px;font-size:12px;color:var(--color-text-primary);overflow-x:auto;margin-bottom:10px;line-height:1.6;font-family:var(--font-mono,'Courier New',monospace)}
+.note{background:var(--color-background-info);border-left:3px solid #378ADD;border-radius:0 var(--border-radius-md) var(--border-radius-md) 0;padding:10px 14px;margin-bottom:10px;font-size:12px;color:var(--color-text-primary);font-family:var(--font-sans);line-height:1.6}
+.warn{background:var(--color-background-warning);border-left:3px solid #EF9F27;border-radius:0 var(--border-radius-md) var(--border-radius-md) 0;padding:10px 14px;margin-bottom:10px;font-size:12px;color:var(--color-text-primary);font-family:var(--font-sans);line-height:1.6}
+.ok{background:var(--color-background-success);border-left:3px solid #1D9E75;border-radius:0 var(--border-radius-md) var(--border-radius-md) 0;padding:10px 14px;margin-bottom:10px;font-size:12px;color:var(--color-text-primary);font-family:var(--font-sans);line-height:1.6}
+.tag{display:inline-block;font-size:10px;padding:2px 7px;border-radius:10px;font-family:var(--font-sans);font-weight:500;margin-right:4px;margin-bottom:2px}
+.tag.cpu{background:#E1F5EE;color:#0F6E56}.tag.ros{background:#E6F1FB;color:#185FA5}.tag.hw{background:#FAEEDA;color:#854F0B}.tag.learn{background:#EEEDFE;color:#534AB7}
+.check-row{display:flex;align-items:flex-start;gap:8px;margin-bottom:6px}
+.check-row input{margin-top:2px;accent-color:#1D9E75;cursor:pointer}
+.check-row label{font-size:13px;color:var(--color-text-secondary);font-family:var(--font-sans);line-height:1.5;cursor:pointer}
+.nav-footer{padding:12px 16px 0;margin-top:auto}
+.btn-row{display:flex;gap:8px;margin-top:24px;padding-top:16px;border-top:0.5px solid var(--color-border-tertiary)}
+button.nav-btn{font-family:var(--font-sans);font-size:13px;padding:7px 16px;border-radius:var(--border-radius-md);cursor:pointer;border:0.5px solid var(--color-border-secondary);background:var(--color-background-primary);color:var(--color-text-primary);transition:background 0.15s}
+button.nav-btn:hover{background:var(--color-background-secondary)}
+button.nav-btn.primary{background:#1D9E75;border-color:#1D9E75;color:#fff}
+button.nav-btn.primary:hover{background:#0F6E56}
+.tbl{width:100%;border-collapse:collapse;font-size:12px;font-family:var(--font-sans);margin-bottom:12px}
+.tbl th{text-align:left;padding:7px 10px;border-bottom:0.5px solid var(--color-border-secondary);color:var(--color-text-secondary);font-weight:500;font-size:11px;letter-spacing:0.04em}
+.tbl td{padding:7px 10px;border-bottom:0.5px solid var(--color-border-tertiary);color:var(--color-text-primary);vertical-align:top;line-height:1.5}
+.progress-bar-wrap{height:3px;background:var(--color-background-secondary);border-radius:2px;margin:4px 0 16px}
+.progress-bar{height:3px;background:#1D9E75;border-radius:2px;transition:width 0.3s}
+.divider{height:0.5px;background:var(--color-border-tertiary);margin:16px 0}
+code{font-family:var(--font-mono,'Courier New',monospace);font-size:12px;background:var(--color-background-secondary);padding:1px 5px;border-radius:4px;color:var(--color-text-primary)}
+</style>
+
+<h2 class="sr-only">SO-101 pick-and-place end-to-end setup guide across 13 phases, from hardware assembly to real-robot deployment.</h2>
+
+<div class="wrap">
+<div class="sidebar">
+  <div class="sidebar-title">Setup Phases</div>
+  <div id="progress-wrap" style="padding:0 16px 4px"><div class="progress-bar-wrap"><div class="progress-bar" id="prog" style="width:7%"></div></div></div>
+  <div id="nav"></div>
+</div>
+<div class="content" id="content"></div>
+</div>
+
+<script>
+const phases=[
+{id:0,title:"Understand your setup",short:"Your setup",tags:["hw"],desc:"Before installing anything, clarify what you have and what each piece does. Your two arms serve distinct roles in the LeRobot teleoperation pipeline.",steps:[
+{t:"Leader arm (parent / 0-1-0-1)",b:`<p>This is the arm <strong style="font-weight:500">you hold and move by hand</strong>. It records your motions as demonstrations. It is never attached to power for actuated control — its servos are in free-wheel (torque-off) mode so you can move it manually. The joint encoder readings stream over USB to your PC and are saved as a dataset.</p><p>Think of it as a motion-capture glove for the robot.</p>`},
+{t:"Follower arm (child)",b:`<p>This is the arm that <strong style="font-weight:500">actually performs the task</strong>. It mirrors the leader during recording (teleoperation) and later replays the learned policy autonomously. All motors are powered and torque-on.</p>`},
+{t:"Hardware checklist",b:`<div class="check-row"><input type="checkbox" id="c1"><label for="c1">2× SO-101 arm kits (leader + follower)</label></div>
+<div class="check-row"><input type="checkbox" id="c2"><label for="c2">2× Feetech STS3215 serial bus servo power supplies (12V / 5A per arm)</label></div>
+<div class="check-row"><input type="checkbox" id="c3"><label for="c3">2× Waveshare Serial Bus Servo Driver Board (USB-TTL)</label></div>
+<div class="check-row"><input type="checkbox" id="c4"><label for="c4">Intel RealSense D405 or D435i camera</label></div>
+<div class="check-row"><input type="checkbox" id="c5"><label for="c5">USB-A or USB-C hub (the RealSense + 2 servo boards = 3 USB ports)</label></div>
+<div class="check-row"><input type="checkbox" id="c6"><label for="c6">Ubuntu 22.04 LTS machine, 16 GB RAM</label></div>
+<div class="check-row"><input type="checkbox" id="c7"><label for="c7">A flat table surface and an object to pick (start with a small cube or bottle cap)</label></div>
+<div class="note">Ubuntu 22.04 LTS (Jammy) is required. ROS2 Jazzy officially supports it. Ubuntu 24.04 works too but has less community support for the SO-101 packages as of 2026.</div>`},
+{t:"How data flows end-to-end",b:`<p>Leader arm → USB → PC records dataset → Train ACT in simulation or Colab → checkpoint → Follower arm reads camera + runs policy → servo commands → task execution.</p>
+<p>In parallel, MoveIt 2 + BehaviorTree handle all the coarse motion planning, collision avoidance, and retry logic. The ACT policy only kicks in for the last few centimetres of fine approach and placement.</p>`}
+]},
+{id:1,title:"System preparation",short:"System prep",tags:["cpu"],desc:"Set up your Ubuntu environment with all the base dependencies before touching any robotics packages.",steps:[
+{t:"Verify Ubuntu version and update",b:`<pre>lsb_release -a
+# Must show: Ubuntu 22.04 LTS
+
+sudo apt update && sudo apt upgrade -y
+sudo apt install -y build-essential cmake git curl wget \
+  python3-pip python3-venv python3-dev \
+  libssl-dev libusb-1.0-0-dev pkg-config \
+  libgtk-3-dev libglfw3-dev libgl1-mesa-dev libglu1-mesa-dev</pre>`},
+{t:"Create a Python virtual environment",b:`<p>Keep all robotics Python packages isolated from system Python. LeRobot and ROS2 Python packages can conflict if mixed.</p>
+<pre>python3 -m venv ~/robot_env
+echo 'source ~/robot_env/bin/activate' >> ~/.bashrc
+source ~/.bashrc
+pip install --upgrade pip setuptools wheel</pre>`},
+{t:"Set USB permissions for servo boards",b:`<p>The Waveshare servo driver appears as <code>/dev/ttyUSB0</code> and <code>/dev/ttyUSB1</code>. Without this step, you will get permission-denied errors when reading/writing servos.</p>
+<pre>sudo usermod -aG dialout $USER
+sudo usermod -aG plugdev $USER
+# Log out and back in, or run:
+newgrp dialout</pre>
+<p>Verify after reconnecting USB:</p>
+<pre>ls -l /dev/ttyUSB*
+# Should show your user group has rw access</pre>`},
+{t:"Find which USB port is which arm",b:`<pre># Plug in leader arm USB, check:
+dmesg | tail -20
+# Note the ttyUSB number (e.g. ttyUSB0)
+
+# Plug in follower arm USB, check again:
+dmesg | tail -20
+# Note second ttyUSB number (e.g. ttyUSB1)</pre>
+<div class="note">Label your USB cables with tape: "LEADER" and "FOLLOWER". The port numbers can swap on reboot if both are plugged in simultaneously.</div>`}
+]},
+{id:2,title:"Assemble & calibrate arms",short:"Hardware calibration",tags:["hw"],desc:"Physical assembly and servo ID assignment must happen before any software will work. Each servo needs a unique ID on the bus.",steps:[
+{t:"Assemble both arms following the kit guide",b:`<p>Follow the official Hugging Face SO-101 build guide: <code>huggingface.co/docs/lerobot/so101</code></p>
+<p>Key assembly notes:</p>
+<div class="check-row"><input type="checkbox" id="a1"><label for="a1">All servo cable chains connected (daisy-chained, not branched)</label></div>
+<div class="check-row"><input type="checkbox" id="a2"><label for="a2">Gripper servo is the last in the chain</label></div>
+<div class="check-row"><input type="checkbox" id="a3"><label for="a3">Servo driver board connected to 12V PSU and to PC via USB</label></div>
+<div class="check-row"><input type="checkbox" id="a4"><label for="a4">Both arms assembled but NOT powered on yet</label></div>`},
+{t:"Assign servo IDs",b:`<p>Each servo must have a unique ID (1–6 for arm joints, 7 for gripper). Factory default is all ID=1 — you must assign them one at a time before chaining.</p>
+<pre># Install feetech-servo-sdk first (done in LeRobot install, but do it now):
+pip install feetech-servo-sdk
+
+# Connect ONE servo at a time to the driver board.
+# Run this script to set its ID:
+python3 - <<'EOF'
+from feetech_servo_sdk import PortHandler, PacketHandler
+port = PortHandler('/dev/ttyUSB0')
+port.openPort(); port.setBaudRate(1000000)
+ph = PacketHandler(0)
+# Current ID is 1, setting to target ID (change 2 to desired ID):
+ph.write1ByteTxRx(port, 1, 3, 2)  # addr 3 = ID register
+print("ID set. Disconnect and connect next servo.")
+port.closePort()
+EOF</pre>
+<div class="warn">Do this with ONE servo connected at a time. If multiple servos share ID=1, commands will collide and both will respond, causing chaos.</div>
+<p>Repeat for all 7 servos (6 joints + 1 gripper) on each arm. Leader arm: IDs 1–7. Follower arm: IDs 1–7 (same IDs are fine since they're on separate USB buses).</p>`},
+{t:"Run LeRobot calibration wizard",b:`<p>LeRobot has a built-in calibration tool that moves each joint to its mechanical limits and saves the offset file.</p>
+<pre># After installing LeRobot (next phase), run:
+python -m lerobot.scripts.configure_motor \
+  --port /dev/ttyUSB1 \
+  --brand feetech \
+  --model sts3215 \
+  --baudrate 1000000 \
+  --ID 1
+
+# Then run the full arm calibration:
+python lerobot/scripts/control_robot.py calibrate \
+  --robot-path lerobot/configs/robot/so101.yaml \
+  --robot-overrides '~cameras' \
+  --arms main_follower</pre>
+<p>Repeat for the leader arm substituting <code>main_leader</code>. The wizard will prompt you to move the arm to specified positions. Follow the on-screen instructions and press Enter at each step.</p>`}
+]},
+{id:3,title:"Install LeRobot",short:"LeRobot install",tags:["cpu","learn"],desc:"LeRobot is the central framework for recording demonstrations, training policies, and running inference on the SO-101.",steps:[
+{t:"Clone and install LeRobot",b:`<pre>cd ~
+git clone https://github.com/huggingface/lerobot.git
+cd lerobot
+
+# Install with SO-101 extras:
+pip install -e ".[feetech]"
+
+# Verify:
+python -c "import lerobot; print(lerobot.__version__)"</pre>`},
+{t:"Create the robot config file",b:`<p>LeRobot needs a YAML config describing your specific arm setup. Create <code>~/lerobot/lerobot/configs/robot/so101_mine.yaml</code>:</p>
+<pre>_target_: lerobot.common.robot_devices.robots.manipulator.ManipulatorRobot
+robot_type: so101
+
+leader_arms:
+  main:
+    _target_: lerobot.common.robot_devices.motors.feetech.FeetechMotorsBus
+    port: /dev/ttyUSB0          # your leader arm port
+    motors:
+      shoulder_pan:   [1, sts3215]
+      shoulder_lift:  [2, sts3215]
+      elbow_flex:     [3, sts3215]
+      wrist_flex:     [4, sts3215]
+      wrist_roll:     [5, sts3215]
+      gripper:        [6, sts3215]
+
+follower_arms:
+  main:
+    _target_: lerobot.common.robot_devices.motors.feetech.FeetechMotorsBus
+    port: /dev/ttyUSB1          # your follower arm port
+    motors:
+      shoulder_pan:   [1, sts3215]
+      shoulder_lift:  [2, sts3215]
+      elbow_flex:     [3, sts3215]
+      wrist_flex:     [4, sts3215]
+      wrist_roll:     [5, sts3215]
+      gripper:        [6, sts3215]
+
+cameras:
+  top:
+    _target_: lerobot.common.robot_devices.cameras.opencv.OpenCVCamera
+    camera_index: 0
+    fps: 30
+    width: 640
+    height: 480</pre>`},
+{t:"Test teleoperation (verify hardware works)",b:`<pre>python lerobot/scripts/control_robot.py teleoperate \
+  --robot-path lerobot/configs/robot/so101_mine.yaml</pre>
+<p>When you physically move the leader arm, the follower arm should mirror it in real time. If it does, your hardware setup is complete.</p>
+<div class="ok">This is your first major milestone. The whole rest of the pipeline depends on teleoperation working correctly. Do not proceed until this works.</div>`}
+]},
+{id:4,title:"Install ROS2 Jazzy + MoveIt2",short:"ROS2 + MoveIt2",tags:["ros","cpu"],desc:"ROS2 Jazzy is the middleware layer that connects all components. MoveIt2 handles collision-aware motion planning.",steps:[
+{t:"Install ROS2 Jazzy",b:`<pre>sudo apt install -y software-properties-common
+sudo add-apt-repository universe
+sudo curl -sSL https://raw.githubusercontent.com/ros/rosdistro/master/ros.key \
+  -o /usr/share/keyrings/ros-archive-keyring.gpg
+echo "deb [arch=$(dpkg --print-architecture) \
+  signed-by=/usr/share/keyrings/ros-archive-keyring.gpg] \
+  http://packages.ros.org/ros2/ubuntu \
+  $(. /etc/os-release && echo $UBUNTU_CODENAME) main" | \
+  sudo tee /etc/apt/sources.list.d/ros2.list
+sudo apt update
+sudo apt install -y ros-jazzy-desktop ros-jazzy-ros-dev-tools</pre>
+<pre>echo 'source /opt/ros/jazzy/setup.bash' >> ~/.bashrc
+source ~/.bashrc</pre>`},
+{t:"Install MoveIt2 and related packages",b:`<pre>sudo apt install -y \
+  ros-jazzy-moveit \
+  ros-jazzy-moveit-ros-planning-interface \
+  ros-jazzy-moveit-task-constructor-core \
+  ros-jazzy-behaviortree-cpp-v3 \
+  ros-jazzy-ros2-control \
+  ros-jazzy-ros2-controllers \
+  ros-jazzy-joint-state-publisher \
+  ros-jazzy-joint-state-publisher-gui \
+  ros-jazzy-xacro \
+  ros-jazzy-rqt*</pre>`},
+{t:"Create your ROS2 workspace",b:`<pre>mkdir -p ~/ros2_ws/src
+cd ~/ros2_ws/src
+
+# Clone the SO-100 arm package (best available base for SO-101):
+git clone https://github.com/brukg/SO-100-arm.git
+
+cd ~/ros2_ws
+colcon build --symlink-install
+echo 'source ~/ros2_ws/install/setup.bash' >> ~/.bashrc
+source ~/.bashrc</pre>
+<div class="note">The SO-101 adds a 6th DOF (wrist yaw) over the SO-100. After cloning, edit the URDF to add the extra joint. The community SO-101 Jazzy package is at: github.com/TheRobotStudio/SO-ARM100 — check for latest SO-101 branch.</div>`},
+{t:"Test MoveIt2 with RViz",b:`<pre>ros2 launch so_arm_moveit_config demo.launch.py</pre>
+<p>RViz should open showing the arm model. Use the MotionPlanning panel to drag the end-effector to a target pose and click Plan + Execute. If the arm model moves in RViz, MoveIt is configured correctly.</p>`}
+]},
+{id:5,title:"Camera setup & calibration",short:"Camera setup",tags:["hw","cpu"],desc:"The RealSense camera is your primary perception sensor. Two calibrations are needed: intrinsic (lens distortion) and extrinsic (camera position relative to robot base).",steps:[
+{t:"Install Intel RealSense SDK",b:`<pre>sudo apt-key adv --keyserver keyserver.ubuntu.com \
+  --recv-key F6E65AC044F831AC80A06380C8B3A55A6F3EFCDE
+sudo add-apt-repository \
+  "deb https://librealsense.intel.com/Debian/apt-repo \
+  $(lsb_release -cs) main"
+sudo apt update
+sudo apt install -y librealsense2-dkms librealsense2-utils \
+  librealsense2-dev ros-jazzy-realsense2-camera
+
+# Test it:
+realsense-viewer</pre>
+<p>You should see a live RGB + depth stream. The depth overlay should show objects at correct distances (hold your hand 30cm away — it should show ~300mm).</p>`},
+{t:"Mount the camera",b:`<p>For this task, mount the RealSense in a <strong style="font-weight:500">static overhead or 45° front-facing position</strong> pointed at the workspace (the table area where objects will be picked).</p>
+<div class="check-row"><input type="checkbox" id="cam1"><label for="cam1">Camera positioned so the full workspace is visible without moving</label></div>
+<div class="check-row"><input type="checkbox" id="cam2"><label for="cam2">Camera is rigidly fixed (no wobble) — tape or a small clamp is fine</label></div>
+<div class="check-row"><input type="checkbox" id="cam3"><label for="cam3">Camera cable has enough slack that the arm never pulls it</label></div>
+<div class="check-row"><input type="checkbox" id="cam4"><label for="cam4">Camera can see both the pick zone and the place zone simultaneously</label></div>`},
+{t:"Hand-eye calibration (camera to robot base)",b:`<p>This tells the software exactly where the camera is in 3D space relative to the robot base frame. Without this, your 3D object coordinates will be wrong.</p>
+<pre>sudo apt install -y ros-jazzy-easy-handeye2
+
+# Launch the calibration tool:
+ros2 launch easy_handeye2 calibrate.launch.py \
+  eye_on_hand:=false \
+  robot_base_frame:=base_link \
+  robot_effector_frame:=tool0 \
+  tracking_base_frame:=camera_color_optical_frame</pre>
+<p>The tool will ask you to move the arm to ~15 different poses while a calibration board (checkerboard) is in view. Print an A4 checkerboard from opencv.org/calibration. At each pose, click Sample, then click Compute at the end. Save the resulting transform to a YAML file.</p>
+<div class="note">If you do not have a printed checkerboard, you can use ArUco markers instead. The easy-handeye2 package supports both.</div>`},
+{t:"Launch RealSense in ROS2",b:`<pre>ros2 launch realsense2_camera rs_launch.py \
+  depth_module.profile:=640x480x30 \
+  rgb_camera.profile:=640x480x30 \
+  align_depth.enable:=true \
+  pointcloud.enable:=true</pre>
+<p>Verify topics are publishing:</p>
+<pre>ros2 topic list | grep camera
+# You should see:
+# /camera/color/image_raw
+# /camera/depth/image_rect_raw
+# /camera/depth/color/points</pre>`}
+]},
+{id:6,title:"Perception pipeline",short:"Perception (YOLO + depth)",tags:["cpu"],desc:"Detection and 3D localisation of the target object using YOLOv8 on CPU + RealSense depth projection. No GPU needed.",steps:[
+{t:"Install YOLOv8",b:`<pre>pip install ultralytics opencv-python-headless \
+  numpy open3d scipy
+
+# Quick test (CPU inference):
+python3 -c "
+from ultralytics import YOLO
+model = YOLO('yolov8n.pt')   # nano = fastest on CPU
+results = model.predict('https://ultralytics.com/images/bus.jpg')
+print('YOLOv8 working, detections:', len(results[0].boxes))
+"</pre>
+<div class="note">Use <code>yolov8n.pt</code> (nano) on CPU. It runs at ~3–5 Hz on a modern CPU — sufficient when combined with EKF tracking between frames.</div>`},
+{t:"Label your objects and fine-tune YOLO",b:`<p>For best results, train YOLO on your specific objects (the things you want to pick). If you only have generic objects like cups or blocks, the pretrained model may already work.</p>
+<pre># Capture ~50-100 images of your object with the RealSense:
+ros2 run image_tools showimage \
+  --ros-args -r image:=/camera/color/image_raw
+
+# Annotate with LabelImg:
+pip install labelImg
+labelImg  # GUI tool, draw bounding boxes
+
+# Fine-tune YOLOv8 on your data:
+python3 - <<'EOF'
+from ultralytics import YOLO
+model = YOLO('yolov8n.pt')
+model.train(
+    data='dataset.yaml',   # your annotation file
+    epochs=50,
+    imgsz=640,
+    device='cpu',          # no GPU
+    batch=4                # small batch for 16GB RAM
+)
+EOF</pre>`},
+{t:"Write the perception ROS2 node",b:`<p>Create <code>~/ros2_ws/src/perception_node/perception_node/detector.py</code>:</p>
+<pre>import rclpy
+from rclpy.node import Node
+from sensor_msgs.msg import Image, PointCloud2
+from geometry_msgs.msg import PoseStamped
+from ultralytics import YOLO
+import cv_bridge, numpy as np
+
+class DetectorNode(Node):
+    def __init__(self):
+        super().__init__('detector')
+        self.model = YOLO('yolov8n.pt')  # or your fine-tuned weights
+        self.bridge = cv_bridge.CvBridge()
+        self.sub_rgb = self.create_subscription(
+            Image, '/camera/color/image_raw', self.rgb_cb, 10)
+        self.sub_depth = self.create_subscription(
+            Image, '/camera/depth/image_rect_raw', self.depth_cb, 10)
+        self.pub_pose = self.create_publisher(PoseStamped, '/object_pose', 10)
+        self.latest_depth = None
+
+    def depth_cb(self, msg):
+        self.latest_depth = self.bridge.imgmsg_to_cv2(msg, '16UC1')
+
+    def rgb_cb(self, msg):
+        if self.latest_depth is None: return
+        frame = self.bridge.imgmsg_to_cv2(msg, 'bgr8')
+        results = self.model.predict(frame, conf=0.5, verbose=False)
+        if not results[0].boxes: return
+        box = results[0].boxes[0].xyxy[0].cpu().numpy()
+        cx = int((box[0]+box[2])/2); cy = int((box[1]+box[3])/2)
+        depth_mm = float(self.latest_depth[cy, cx])
+        if depth_mm < 10 or depth_mm > 2000: return
+        # Convert pixel+depth to 3D (using RealSense D405 intrinsics):
+        fx,fy,ppx,ppy = 382.0,382.0,320.0,240.0  # replace with actual
+        z = depth_mm/1000.0
+        x = (cx-ppx)*z/fx; y = (cy-ppy)*z/fy
+        pose = PoseStamped()
+        pose.header.frame_id = 'camera_color_optical_frame'
+        pose.header.stamp = self.get_clock().now().to_msg()
+        pose.pose.position.x=x; pose.pose.position.y=y; pose.pose.position.z=z
+        pose.pose.orientation.w=1.0
+        self.pub_pose.publish(pose)
+
+def main():
+    rclpy.init()
+    rclpy.spin(DetectorNode())
+rclpy.shutdown()</pre>`},
+{t:"Get real camera intrinsics",b:`<pre># Get actual intrinsic values from the camera:
+ros2 topic echo /camera/color/camera_info --once
+# Look for: K: [fx, 0, ppx, 0, fy, ppy, 0, 0, 1]
+# Replace fx, fy, ppx, ppy in the detector node above with these values.</pre>`}
+]},
+{id:7,title:"Grasp generation",short:"Grasp generation",tags:["cpu"],desc:"Given the 3D object pose, compute the best grasp pose for the parallel-jaw gripper using antipodal sampling on the object's point cloud.",steps:[
+{t:"Extract object point cloud",b:`<pre>import open3d as o3d
+import numpy as np
+
+def extract_object_cloud(depth_image, mask, intrinsics):
+    """Extract 3D point cloud of the detected object region."""
+    fx,fy,cx,cy = intrinsics
+    h,w = depth_image.shape
+    u,v = np.where(mask)
+    z = depth_image[u,v] / 1000.0   # mm -> m
+    valid = (z > 0.05) & (z < 1.5)
+    u,v,z = u[valid],v[valid],z[valid]
+    x = (v-cx)*z/fx; y = (u-cy)*z/fy
+    pts = np.stack([x,y,z], axis=1)
+    pcd = o3d.geometry.PointCloud()
+    pcd.points = o3d.utility.Vector3dVector(pts)
+    pcd.estimate_normals()
+    return pcd</pre>`},
+{t:"Antipodal grasp sampler",b:`<pre>def sample_antipodal_grasps(pcd, gripper_width=0.08, n_samples=200):
+    """Generate grasp candidates using antipodal sampling."""
+    pts = np.asarray(pcd.points)
+    norms = np.asarray(pcd.normals)
+    candidates = []
+    indices = np.random.choice(len(pts), min(n_samples, len(pts)), replace=False)
+    for i in indices:
+        p = pts[i]; n = norms[i]
+        # Cast ray along -n to find antipodal point
+        dists = np.linalg.norm(pts - (p - n * 0.12), axis=1)
+        j = np.argmin(dists)
+        p2 = pts[j]
+        dist = np.linalg.norm(p2 - p)
+        if dist > gripper_width: continue
+        center = (p + p2) / 2
+        approach = -n / (np.linalg.norm(n) + 1e-9)
+        # Prefer top-down grasps (approach from above)
+        verticality = abs(approach[2])   # 1.0 = perfectly vertical
+        candidates.append({
+            'center': center,
+            'approach': approach,
+            'width': dist,
+            'score': verticality + (1.0 - dist/gripper_width)*0.3
+        })
+    candidates.sort(key=lambda c: -c['score'])
+    return candidates[:10]  # top 10</pre>`},
+{t:"Convert best grasp to robot frame",b:`<pre># The grasp center is in camera frame.
+# Transform to robot base frame using the hand-eye calibration matrix:
+import tf2_ros, tf2_geometry_msgs
+from geometry_msgs.msg import PoseStamped
+
+def grasp_to_robot_frame(grasp_pose_camera, tf_buffer):
+    try:
+        transform = tf_buffer.lookup_transform(
+            'base_link',
+            'camera_color_optical_frame',
+            rclpy.time.Time())
+        grasp_robot = tf2_geometry_msgs.do_transform_pose(
+            grasp_pose_camera, transform)
+        return grasp_robot
+    except Exception as e:
+        print(f"TF error: {e}")
+        return None</pre>
+<div class="note">Make sure the hand-eye calibration transform (from Phase 5) is being broadcast as a static TF. Add it to your launch file: <code>ros2 run tf2_ros static_transform_publisher --yaml calibration.yaml</code></div>`}
+]},
+{id:8,title:"Task planning (BehaviorTree)",short:"Task planning",tags:["ros","cpu"],desc:"BehaviorTree.CPP orchestrates the high-level pick-and-place logic with retry logic, error handling, and sequential stages.",steps:[
+{t:"Install BehaviorTree.CPP ROS2 wrapper",b:`<pre>sudo apt install -y ros-jazzy-behaviortree-cpp-v3 \
+  ros-jazzy-btcpp-ros2-interfaces
+
+# Also install Groot2 (visual BT editor, optional but very helpful):
+# Download AppImage from: https://www.behaviortree.dev/groot/</pre>`},
+{t:"Create the pick-place behavior tree XML",b:`<p>Save as <code>~/ros2_ws/src/pick_place_bt/trees/pick_place.xml</code>:</p>
+<pre>&lt;root BTCPP_format="4"&gt;
+  &lt;BehaviorTree ID="PickAndPlace"&gt;
+    &lt;Sequence&gt;
+      &lt;RetryUntilSuccessful num_attempts="3"&gt;
+        &lt;Sequence name="detect_and_grasp"&gt;
+          &lt;DetectObject object_class="target" output_pose="{obj_pose}"/&gt;
+          &lt;ComputeGrasp input_pose="{obj_pose}" output_grasp="{grasp}"/&gt;
+          &lt;MoveToPreGrasp grasp="{grasp}"/&gt;
+          &lt;CloseGripper/&gt;
+          &lt;VerifyGrasp success="{grasp_ok}"/&gt;
+          &lt;Precondition if="{grasp_ok}" else="FAILURE"&gt;
+            &lt;AlwaysSuccess/&gt;
+          &lt;/Precondition&gt;
+        &lt;/Sequence&gt;
+      &lt;/RetryUntilSuccessful&gt;
+      &lt;LiftObject height_m="0.1"/&gt;
+      &lt;RetryUntilSuccessful num_attempts="3"&gt;
+        &lt;Sequence name="transport_and_place"&gt;
+          &lt;MoveToPrePlace place_pose="{place_pose}"/&gt;
+          &lt;DescendToPlace/&gt;
+          &lt;OpenGripper/&gt;
+          &lt;VerifyPlacement success="{place_ok}"/&gt;
+          &lt;Retreat/&gt;
+        &lt;/Sequence&gt;
+      &lt;/RetryUntilSuccessful&gt;
+    &lt;/Sequence&gt;
+  &lt;/BehaviorTree&gt;
+&lt;/root&gt;</pre>`},
+{t:"Implement the custom BT action nodes",b:`<p>Each node in the XML needs a C++ or Python implementation. The key ones are:</p>
+<table class="tbl"><tr><th>Node</th><th>What it does</th><th>How</th></tr>
+<tr><td>DetectObject</td><td>Calls YOLO detector, waits for pose</td><td>Subscribe to /object_pose, timeout 3s</td></tr>
+<tr><td>ComputeGrasp</td><td>Runs antipodal sampler</td><td>Python grasp node via ROS2 service</td></tr>
+<tr><td>MoveToPreGrasp</td><td>Plans path with MoveIt</td><td>MoveIt MoveGroupInterface C++ or pymoveit2</td></tr>
+<tr><td>CloseGripper</td><td>Commands gripper servo</td><td>LeRobot motor bus command</td></tr>
+<tr><td>VerifyGrasp</td><td>Check servo load > threshold</td><td>Read STS3215 load register</td></tr>
+<tr><td>MoveToPrePlace</td><td>Plans path to place pose</td><td>MoveIt MoveGroupInterface</td></tr>
+<tr><td>OpenGripper</td><td>Opens gripper</td><td>LeRobot motor bus command</td></tr>
+<tr><td>VerifyPlacement</td><td>Vision check via camera</td><td>Re-detect object at target zone</td></tr></table>
+<pre># Install pymoveit2 (Python MoveIt interface, easier for prototyping):
+pip install pymoveit2</pre>`},
+{t:"Grasp verification via servo load",b:`<pre>def verify_grasp(motor_bus, gripper_id=6, min_load=10, max_load=80):
+    """
+    Returns True if object is securely grasped.
+    Load is percentage of stall torque (0-100).
+    """
+    load = motor_bus.read('Present_Load', gripper_id)
+    position = motor_bus.read('Present_Position', gripper_id)
+    target = motor_bus.read('Goal_Position', gripper_id)
+
+    contact_made = load > min_load      # touching something
+    stable = abs(position - target) < 5 # not drifting under load
+    safe = load < max_load              # not overloading
+
+    return contact_made and stable and safe</pre>`}
+]},
+{id:9,title:"Download pretrained ACT policy",short:"ACT policy",tags:["learn","cpu"],desc:"Use the existing pretrained ACT checkpoint for the SO-101 pick-place task. No training needed — just configure inference.",steps:[
+{t:"Download the pretrained checkpoint",b:`<pre>pip install huggingface_hub
+
+python3 - <<'EOF'
+from huggingface_hub import snapshot_download
+# Pretrained ACT checkpoint: SO-101 sim pick-place
+# Trained on 105 demos, loss converged to 0.089
+snapshot_download(
+    repo_id="davidlinjiahao/lerobot_so101_base_sim_pickplace",
+    local_dir="~/checkpoints/so101_act"
+)
+print("Checkpoint downloaded.")
+EOF</pre>`},
+{t:"Configure the policy for your robot",b:`<p>Create <code>~/lerobot/lerobot/configs/policy/act_so101_real.yaml</code>:</p>
+<pre>_target_: lerobot.common.policies.act.modeling_act.ACTPolicy
+
+input_shapes:
+  observation.images.top: [3, 480, 640]   # your camera resolution
+  observation.state: [6]                  # 6 joint positions
+
+output_shapes:
+  action: [6]                             # 6 joint targets
+
+chunk_size: 50                            # predict 50 steps at once
+n_action_steps: 50
+device: cpu                               # no GPU!
+
+# Path to downloaded checkpoint:
+pretrained_path: ~/checkpoints/so101_act</pre>`},
+{t:"Run the policy in inference mode",b:`<pre>python lerobot/scripts/control_robot.py record \
+  --robot-path lerobot/configs/robot/so101_mine.yaml \
+  --policy-path ~/checkpoints/so101_act \
+  --fps 30 \
+  --warmup-time-s 2 \
+  --reset-time-s 5 \
+  --episode-time-s 30</pre>
+<div class="note">The ACT policy runs at ~300ms per inference step on CPU. It is used only for the final fine-approach phase (last 5–10cm). MoveIt handles all coarse motion. This latency is acceptable for the correction role.</div>
+<div class="warn">The pretrained checkpoint was trained in MuJoCo simulation. It will need 10–20 real-robot fine-tuning demos to bridge the sim-to-real gap (see Phase 11).</div>`}
+]},
+{id:10,title:"MuJoCo simulation testing",short:"MuJoCo sim",tags:["cpu"],desc:"Test your full pipeline in simulation before putting it near the real robot. This saves hardware from crashes.",steps:[
+{t:"Install MuJoCo and gym-so100-c",b:`<pre>pip install mujoco gymnasium
+
+# Clone the SO-101 MuJoCo environment:
+git clone https://github.com/michel-aractingi/gym-so100-c.git
+cd gym-so100-c && pip install -e .
+
+# Verify:
+python3 - <<'EOF'
+import gymnasium as gym
+import gym_so100_c
+env = gym.make("gym_so100_c/PickCube-v0", render_mode="human")
+obs, _ = env.reset()
+print("Sim running. Obs shape:", obs['observation.state'].shape)
+env.close()
+EOF</pre>`},
+{t:"Run the pretrained ACT policy in sim",b:`<pre>python lerobot/scripts/eval.py \
+  --pretrained-policy-name-or-path \
+    davidlinjiahao/lerobot_so101_base_sim_pickplace \
+  --env-name gym_so100_c/PickCube-v0 \
+  --eval.n_episodes 20 \
+  --eval.batch_size 1 \
+  --device cpu</pre>
+<p>You should see the simulated arm attempting to pick a cube. Note where it fails — these are the scenarios you should prioritise in your real-robot demo collection.</p>`},
+{t:"Collect simulated demos for augmentation",b:`<pre># Record teleop demos IN simulation to expand dataset cheaply:
+python lerobot/scripts/control_robot.py record \
+  --robot-path lerobot/configs/robot/so101_mine.yaml \
+  --fps 30 \
+  --root data \
+  --repo-id local/so101_sim_demos \
+  --tags sim tutorial \
+  --warmup-time-s 2 \
+  --reset-time-s 5 \
+  --episode-time-s 30 \
+  --num-episodes 30</pre>`}
+]},
+{id:11,title:"Real demo collection & fine-tuning",short:"Demo collection",tags:["learn","hw"],desc:"Collect 30–50 real-robot demonstrations using the leader arm to bridge the sim-to-real gap.",steps:[
+{t:"Set up the physical workspace",b:`<p>Consistency is critical. Variation in your workspace from demo to demo will confuse the policy.</p>
+<div class="check-row"><input type="checkbox" id="ws1"><label for="ws1">Use a lightbox or consistent overhead lighting (no window shadows)</label></div>
+<div class="check-row"><input type="checkbox" id="ws2"><label for="ws2">Place a coloured mat on the table to define pick and place zones</label></div>
+<div class="check-row"><input type="checkbox" id="ws3"><label for="ws3">Camera is rigidly mounted, same position as during calibration</label></div>
+<div class="check-row"><input type="checkbox" id="ws4"><label for="ws4">Object is always placed within a ±5cm zone at demo start</label></div>
+<div class="check-row"><input type="checkbox" id="ws5"><label for="ws5">Place zone is clearly marked (a strip of tape is fine)</label></div>`},
+{t:"Record real teleoperation demonstrations",b:`<pre>python lerobot/scripts/control_robot.py record \
+  --robot-path lerobot/configs/robot/so101_mine.yaml \
+  --fps 30 \
+  --root data \
+  --repo-id local/so101_real_pickplace \
+  --tags real pickplace \
+  --warmup-time-s 3 \
+  --reset-time-s 7 \
+  --episode-time-s 30 \
+  --num-episodes 50</pre>
+<p>The terminal will count down and prompt you to start each episode. Use the leader arm to perform the pick-and-place motion smoothly. Reset the object between each episode. Aim for 50 demos — you can start with 30 and add more if needed.</p>`},
+{t:"Fine-tune the ACT policy on real data",b:`<pre># Mix sim checkpoint with real data for best sim-to-real transfer:
+python lerobot/scripts/train.py \
+  policy=act_so101_real \
+  env=real \
+  dataset_repo_id=local/so101_real_pickplace \
+  hydra.run.dir=outputs/train/act_real \
+  training.num_workers=4 \
+  training.batch_size=4 \
+  training.num_epochs=100 \
+  device=cpu \
+  training.pretrained_model_path=~/checkpoints/so101_act</pre>
+<div class="warn">Training on CPU with 50 demos and 100 epochs will take 4–8 hours. Run it overnight. If this is too slow, use the pretrained checkpoint as-is for initial testing and fine-tune later on Google Colab (free T4 GPU).</div>`}
+]},
+{id:12,title:"Full end-to-end deployment",short:"Full deployment",tags:["hw","ros","cpu"],desc:"Run the complete pipeline on the real robot. Launch all nodes in sequence, verify each stage, then execute the full pick-and-place loop.",steps:[
+{t:"Launch sequence (one terminal per command)",b:`<p>Open 5 terminal tabs. Run one command per tab, in order:</p>
+<pre># Tab 1: ROS2 core + TF (camera calibration static transform)
+ros2 launch pick_place_bringup bringup.launch.py
+
+# Tab 2: RealSense camera
+ros2 launch realsense2_camera rs_launch.py \
+  align_depth.enable:=true pointcloud.enable:=true
+
+# Tab 3: MoveIt2 + RViz
+ros2 launch so_arm_moveit_config move_group.launch.py
+
+# Tab 4: Perception node (YOLO + depth)
+ros2 run perception_node detector
+
+# Tab 5: Main behavior tree runner
+ros2 run pick_place_bt bt_runner \
+  --tree trees/pick_place.xml \
+  --policy ~/checkpoints/so101_act</pre>`},
+{t:"Verify each subsystem before running",b:`<table class="tbl"><tr><th>Check</th><th>Command</th><th>Expected</th></tr>
+<tr><td>Camera publishing</td><td><code>ros2 topic hz /camera/color/image_raw</code></td><td>~30 Hz</td></tr>
+<tr><td>Object detected</td><td><code>ros2 topic echo /object_pose</code></td><td>pose ~0.3m in front of camera</td></tr>
+<tr><td>MoveIt ready</td><td>Check RViz — arm should be visible in current pose</td><td>Green arm, no errors</td></tr>
+<tr><td>Servos responding</td><td><code>ros2 topic echo /joint_states</code></td><td>6 joint values updating</td></tr>
+<tr><td>BT loaded</td><td>Check Tab 5 terminal</td><td>"Tree loaded successfully"</td></tr></table>`},
+{t:"Safety procedure before first run",b:`<div class="warn">Read this before the first autonomous run.</div>
+<div class="check-row"><input type="checkbox" id="sf1"><label for="sf1">Keep hand on the power switch. Be ready to cut power if the arm moves unexpectedly.</label></div>
+<div class="check-row"><input type="checkbox" id="sf2"><label for="sf2">Set velocity limits in MoveIt to 20% max for the first run: <code>max_velocity_scaling_factor: 0.2</code></label></div>
+<div class="check-row"><input type="checkbox" id="sf3"><label for="sf3">Clear the workspace of anything fragile or any cables the arm could snag.</label></div>
+<div class="check-row"><input type="checkbox" id="sf4"><label for="sf4">Place the object in the expected pick zone and confirm detection in RViz.</label></div>
+<div class="check-row"><input type="checkbox" id="sf5"><label for="sf5">First run: enable E-stop in RViz (MoveIt) before starting. Only release once arm starts moving smoothly.</label></div>`},
+{t:"Start the pick-and-place task",b:`<pre># Start the behavior tree execution:
+ros2 service call /bt_runner/start std_srvs/srv/Trigger
+
+# Monitor in real time:
+ros2 topic echo /bt_runner/status</pre>
+<p>The arm should: detect the object → move to pre-grasp pose → approach → close gripper → verify grasp → lift → transport → descend → open gripper → retreat. One full cycle takes approximately 15–20 seconds.</p>
+<div class="ok">If the first attempt fails, the BehaviorTree RetryUntilSuccessful node will automatically retry up to 3 times before reporting failure. Check the terminal logs to see which BT node failed.</div>`},
+{t:"Iterative improvement loop",b:`<table class="tbl"><tr><th>Problem</th><th>Diagnosis</th><th>Fix</th></tr>
+<tr><td>Object not detected</td><td>YOLO confidence too low</td><td>Fine-tune YOLO with more images, improve lighting</td></tr>
+<tr><td>Grasp misses object</td><td>Camera calibration error or depth noise</td><td>Re-run hand-eye calibration, check depth at object distance</td></tr>
+<tr><td>Arm hits table</td><td>Table plane not in MoveIt scene</td><td>Add <code>CollisionObject</code> for table in MoveIt planning scene</td></tr>
+<tr><td>Gripper slips</td><td>Load threshold too low</td><td>Increase <code>min_load</code> in verify_grasp(), increase grip force</td></tr>
+<tr><td>Placement inaccurate</td><td>No visual alignment step</td><td>Enable ACT policy for final 10cm descent</td></tr>
+<tr><td>IK fails at target</td><td>Pose near singularity</td><td>Adjust pick height +2cm, try alternate grasp orientation</td></tr></table>`}
+]}
+];
+
+let current=0;
+const doneSet=new Set();
+
+function buildNav(){
+  const nav=document.getElementById('nav');
+  nav.innerHTML='';
+  phases.forEach((p,i)=>{
+    const d=document.createElement('div');
+    d.className='nav-item'+(i===current?' active':doneSet.has(i)?' done':'');
+    d.innerHTML=`<span class="nav-num">${doneSet.has(i)?'✓':i}</span><span>${p.short}</span>`;
+    d.onclick=()=>goTo(i);
+    nav.appendChild(d);
+  });
+  document.getElementById('prog').style.width=Math.round((current/(phases.length-1))*100)+'%';
+}
+
+function buildPhase(p){
+  let html=`<div class="phase-header">
+    <div class="phase-badge"><span class="dot"></span>Phase ${p.id}</div>
+    <h1>${p.title}</h1>
+    <p class="phase-desc">${p.desc}</p></div>`;
+  p.steps.forEach((s,i)=>{
+    html+=`<div class="step">
+      <div class="step-label"><span class="step-num">${i+1}</span><span class="step-title">${s.t}</span></div>
+      <div class="step-body">${s.b}</div></div>`;
+    if(i<p.steps.length-1) html+='<div class="divider"></div>';
+  });
+  html+=`<div class="btn-row">
+    ${current>0?`<button class="nav-btn" onclick="goTo(${current-1})">← Previous</button>`:''}
+    <span style="flex:1"></span>
+    ${current<phases.length-1?`<button class="nav-btn primary" onclick="goTo(${current+1})">Next phase →</button>`:`<button class="nav-btn primary" onclick="sendPrompt('I have completed all setup phases. Give me a quick troubleshooting guide for common failure modes.')">Complete — get troubleshooting tips ↗</button>`}
+  </div>`;
+  return html;
+}
+
+function goTo(i){
+  if(current!==i) doneSet.add(current);
+  current=i;
+  const content=document.getElementById('content');
+  content.innerHTML=`<div class="phase active">${buildPhase(phases[i])}</div>`;
+  content.scrollTop=0;
+  buildNav();
+}
+
+goTo(0);
+</script>

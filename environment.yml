@@ -1,0 +1,16 @@
+name: so101-lerobot
+channels:
+  - defaults
+dependencies:
+  - python=3.12
+  - pip
+  - pip:
+      - "lerobot[feetech]"
+      - huggingface_hub
+      - wandb
+      - ultralytics
+      - opencv-python
+      - open3d
+      - mujoco
+      - scipy
+      - numpy

@@ -1,0 +1,28 @@
+.DS_Store
+
+# Local Python/conda environments
+.conda/
+.phosphobot-venv/
+.venv/
+venv/
+
+# Python caches
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Local secrets and machine-specific config
+.env
+.env.*
+
+# Generated robot/training outputs. Keep these in HF cache, releases, or LFS.
+outputs/
+calibration_backups/
+
+# Logs and temporary files
+*.log
+*.tmp
+*.bak

@@ -1,0 +1,341 @@
+
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+.root{font-family:var(--font-sans);padding:4px 0}
+.tabs{display:flex;gap:0;border-bottom:0.5px solid var(--color-border-secondary);margin-bottom:24px}
+.tab{padding:9px 18px;font-size:13px;cursor:pointer;border-bottom:2px solid transparent;color:var(--color-text-secondary);transition:all 0.15s;white-space:nowrap}
+.tab:hover{color:var(--color-text-primary)}
+.tab.active{color:#1D9E75;border-bottom:2px solid #1D9E75;font-weight:500}
+.panel{display:none}.panel.active{display:block}
+h2{font-size:17px;font-weight:500;color:var(--color-text-primary);margin-bottom:4px}
+.subtitle{font-size:12px;color:var(--color-text-secondary);margin-bottom:18px;line-height:1.5}
+.step-block{margin-bottom:18px;border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-lg);overflow:hidden}
+.step-head{display:flex;align-items:center;gap:10px;padding:10px 14px;background:var(--color-background-secondary)}
+.step-n{width:26px;height:26px;border-radius:50%;background:#1D9E75;color:#fff;font-size:12px;font-weight:500;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.step-n.warn{background:#EF9F27}
+.step-title{font-size:13px;font-weight:500;color:var(--color-text-primary)}
+.step-tag{margin-left:auto;font-size:10px;padding:2px 8px;border-radius:10px;font-weight:500}
+.tag-hw{background:#FAEEDA;color:#854F0B}
+.tag-sw{background:#E1F5EE;color:#0F6E56}
+.tag-crit{background:#FCEBEB;color:#A32D2D}
+.tag-once{background:#E6F1FB;color:#185FA5}
+.step-body{padding:12px 14px}
+.step-body p{font-size:12.5px;color:var(--color-text-secondary);line-height:1.65;margin-bottom:8px}
+.step-body p:last-child{margin-bottom:0}
+pre{background:var(--color-background-secondary);border:0.5px solid var(--color-border-tertiary);border-radius:6px;padding:10px 12px;font-size:11.5px;color:var(--color-text-primary);overflow-x:auto;margin:8px 0;line-height:1.6;font-family:var(--font-mono,'Courier New',monospace)}
+.note{background:var(--color-background-info);border-left:3px solid #378ADD;border-radius:0 6px 6px 0;padding:8px 12px;margin:8px 0;font-size:12px;color:var(--color-text-primary);line-height:1.6}
+.warn-box{background:var(--color-background-warning);border-left:3px solid #EF9F27;border-radius:0 6px 6px 0;padding:8px 12px;margin:8px 0;font-size:12px;color:var(--color-text-primary);line-height:1.6}
+.ok-box{background:var(--color-background-success);border-left:3px solid #1D9E75;border-radius:0 6px 6px 0;padding:8px 12px;margin:8px 0;font-size:12px;color:var(--color-text-primary);line-height:1.6}
+.danger-box{background:#FCEBEB;border-left:3px solid #E24B4A;border-radius:0 6px 6px 0;padding:8px 12px;margin:8px 0;font-size:12px;color:var(--color-text-primary);line-height:1.6}
+table.t{width:100%;border-collapse:collapse;font-size:12px;margin:8px 0}
+table.t th{text-align:left;padding:6px 10px;border-bottom:0.5px solid var(--color-border-secondary);color:var(--color-text-secondary);font-weight:500;font-size:11px;letter-spacing:0.04em}
+table.t td{padding:6px 10px;border-bottom:0.5px solid var(--color-border-tertiary);color:var(--color-text-primary);vertical-align:top;line-height:1.5}
+.align-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px}
+.align-card{border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-lg);padding:12px 14px}
+.align-card h3{font-size:12px;font-weight:500;color:var(--color-text-secondary);margin-bottom:8px;text-transform:uppercase;letter-spacing:0.05em}
+.align-item{display:flex;gap:8px;margin-bottom:6px;align-items:flex-start;font-size:12px;line-height:1.5;color:var(--color-text-primary)}
+.icon{width:16px;height:16px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:9px;margin-top:1px}
+.icon.ok{background:#5DCAA5;color:#fff}
+.icon.fix{background:#EF9F27;color:#fff}
+.icon.miss{background:#E24B4A;color:#fff}
+.verdict{border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-lg);padding:16px;margin-bottom:16px;text-align:center}
+.v-pct{font-size:36px;font-weight:500;color:#1D9E75}
+.v-label{font-size:12px;color:var(--color-text-secondary);margin-top:4px}
+.v-body{font-size:13px;color:var(--color-text-primary);margin-top:10px;line-height:1.6;text-align:left}
+.diff-row{display:flex;align-items:flex-start;gap:10px;padding:8px 0;border-bottom:0.5px solid var(--color-border-tertiary);font-size:12.5px}
+.diff-row:last-child{border-bottom:none}
+.diff-label{min-width:80px;font-size:10px;padding:2px 7px;border-radius:10px;font-weight:500;text-align:center;flex-shrink:0;margin-top:2px}
+.lbl-fix{background:#FAEEDA;color:#854F0B}
+.lbl-add{background:#FCEBEB;color:#A32D2D}
+.lbl-ok{background:#E1F5EE;color:#0F6E56}
+.diff-text{color:var(--color-text-primary);line-height:1.6}
+.diff-text strong{font-weight:500}
+</style>
+<div class="root">
+<div class="tabs">
+  <div class="tab active" onclick="switchTab('official')">Official HF Docs — Full Steps</div>
+  <div class="tab" onclick="switchTab('wowrobo')">WOWROBO Quickstart Alerts</div>
+  <div class="tab" onclick="switchTab('align')">Plan Alignment Check</div>
+</div>
+
+<div id="panel-official" class="panel active">
+<h2>Complete official SO-101 setup — as per HuggingFace docs</h2>
+<p class="subtitle">Every step from the official docs at huggingface.co/docs/lerobot/so101, in order. Commands shown are the current LeRobot v0.4.3 CLI — not the old python scripts/ approach.</p>
+
+<div class="step-block">
+  <div class="step-head"><span class="step-n">0</span><span class="step-title">Source the parts + 3D print</span><span class="step-tag tag-hw">hardware</span></div>
+  <div class="step-body">
+    <p>The bill of materials and 3D print files are at: <code>github.com/TheRobotStudio/SO-ARM100</code>. If you have the WOWROBO pre-assembled kit, this is already done — skip to Step 1.</p>
+    <div class="note">The WOWROBO SO-ARM101 kit comes pre-assembled. Your quickstart card confirms this: "(Assembled Version Only)".</div>
+  </div>
+</div>
+
+<div class="step-block">
+  <div class="step-head"><span class="step-n">1</span><span class="step-title">Install LeRobot</span><span class="step-tag tag-sw">software</span></div>
+  <div class="step-body">
+    <pre>git clone https://github.com/huggingface/lerobot.git
+cd lerobot
+pip install -e ".[feetech]"</pre>
+    <p>The <code>[feetech]</code> extra installs the Feetech SDK needed to communicate with STS3215 servos. This is the only Python install you need for the hardware layer.</p>
+  </div>
+</div>
+
+<div class="step-block">
+  <div class="step-head"><span class="step-n warn">!</span><span class="step-title">CRITICAL: Know your motor gear ratios (Leader ≠ Follower)</span><span class="step-tag tag-crit">critical</span></div>
+  <div class="step-body">
+    <p>The leader and follower arms use DIFFERENT motors. This is the most commonly missed detail.</p>
+    <table class="t">
+      <tr><th>Axis</th><th>Leader gear ratio</th><th>Follower gear ratio</th></tr>
+      <tr><td>Base / Shoulder Pan (J1)</td><td>1/191 (faster)</td><td>1/345 (stronger)</td></tr>
+      <tr><td>Shoulder Lift (J2)</td><td>1/345</td><td>1/345</td></tr>
+      <tr><td>Elbow Flex (J3)</td><td>1/191</td><td>1/345</td></tr>
+      <tr><td>Wrist Flex (J4)</td><td>1/147</td><td>1/345</td></tr>
+      <tr><td>Wrist Roll (J5)</td><td>1/147</td><td>1/345</td></tr>
+      <tr><td>Gripper (J6)</td><td>1/147</td><td>1/345</td></tr>
+    </table>
+    <p>The leader uses lighter-ratio motors (1/147, 1/191) so you can move it easily by hand. The follower uses heavy 1/345 gearing for torque and holding power.</p>
+    <div class="danger-box">Never swap motors between arms. Installing a 1/345 motor on the leader makes it very hard to backdriven manually. Installing a 1/147 motor on the follower makes it weak and unable to hold its own weight.</div>
+  </div>
+</div>
+
+<div class="step-block">
+  <div class="step-head"><span class="step-n">2</span><span class="step-title">Find USB ports for each arm</span><span class="step-tag tag-once">do once</span></div>
+  <div class="step-body">
+    <p>Connect the follower arm USB. Run:</p>
+    <pre>lerobot-find-port</pre>
+    <p>Follow the prompt — it will ask you to disconnect the USB while running to identify which port belongs to which arm. Note the port string (e.g. <code>/dev/ttyUSB0</code> on Linux).</p>
+    <p>Repeat with the leader arm USB connected.</p>
+    <div class="warn-box">Label your USB cables with tape ("LEADER" / "FOLLOWER"). On Linux, ttyUSB numbers can swap between reboots if both are plugged in simultaneously.</div>
+  </div>
+</div>
+
+<div class="step-block">
+  <div class="step-head"><span class="step-n warn">!</span><span class="step-title">Set motor IDs and baudrates — ONE MOTOR AT A TIME</span><span class="step-tag tag-crit">critical</span></div>
+  <div class="step-body">
+    <p>All new motors ship with ID=1. You must set unique IDs before daisy-chaining. The official script walks you through each motor individually.</p>
+    <p><strong style="font-weight:500">For the follower arm:</strong></p>
+    <pre>lerobot-setup-motors \
+    --robot.type=so101_follower \
+    --robot.port=/dev/ttyUSB1   # your follower port</pre>
+    <p>The script will say: <em>"Connect the controller board to the 'gripper' motor only and press enter."</em> Connect ONLY that motor, press Enter. It auto-sets ID=6 for gripper. Then it asks for wrist_roll (ID=5), and so on up to shoulder_pan (ID=1).</p>
+    <div class="warn-box">At each step: only ONE motor connected to the board. Do NOT daisy-chain yet. Check power supply and USB are connected before pressing Enter.</div>
+    <p><strong style="font-weight:500">For the leader arm:</strong></p>
+    <pre>lerobot-setup-motors \
+    --teleop.type=so101_leader \
+    --teleop.port=/dev/ttyUSB0   # your leader port</pre>
+    <p>Same process. Motor IDs are set 6→5→4→3→2→1 (gripper first, shoulder pan last).</p>
+    <p>Once all motors are set, daisy-chain the 3-pin cables: shoulder_pan → shoulder_lift → elbow → wrist_flex → wrist_roll → gripper. Connect shoulder_pan to the controller board.</p>
+  </div>
+</div>
+
+<div class="step-block">
+  <div class="step-head"><span class="step-n">3</span><span class="step-title">Clean 3D-printed parts (if self-assembled)</span><span class="step-tag tag-hw">hardware</span></div>
+  <div class="step-body">
+    <p>Remove all support material with a small screwdriver. For WOWROBO pre-assembled: verify no plastic flash or loose parts around joints before powering on.</p>
+  </div>
+</div>
+
+<div class="step-block">
+  <div class="step-head"><span class="step-n">4</span><span class="step-title">Assemble joints 1–5 + gripper</span><span class="step-tag tag-hw">hardware</span></div>
+  <div class="step-body">
+    <p>For the pre-assembled WOWROBO kit, the joints are already done. Verify the following before calibration:</p>
+    <table class="t">
+      <tr><th>Joint</th><th>Verify</th></tr>
+      <tr><td>J1 — Base</td><td>Rotates freely ±110°, motor horn screw tight (M3×6)</td></tr>
+      <tr><td>J2 — Shoulder</td><td>Lifts smoothly, 4×M3×6 on each side</td></tr>
+      <tr><td>J3 — Elbow</td><td>No binding through full range</td></tr>
+      <tr><td>J4 — Wrist flex</td><td>No binding, cable not kinked</td></tr>
+      <tr><td>J5 — Wrist roll</td><td>Continuous rotation, single horn</td></tr>
+      <tr><td>Gripper</td><td>Opens/closes fully, 4×M3×6 on claw</td></tr>
+    </table>
+    <p>Install one 3-pin cable into each motor before final assembly if reassembling from scratch.</p>
+  </div>
+</div>
+
+<div class="step-block">
+  <div class="step-head"><span class="step-n warn">!</span><span class="step-title">Calibrate both arms</span><span class="step-tag tag-crit">critical</span></div>
+  <div class="step-body">
+    <p>Calibration maps physical joint angles to encoder counts. Without it, the leader and follower will not be in sync, and any trained policy will not transfer between robots.</p>
+    <p><strong style="font-weight:500">Follower calibration:</strong></p>
+    <pre>lerobot-calibrate \
+    --robot.type=so101_follower \
+    --robot.port=/dev/ttyUSB1 \
+    --robot.id=my_follower_arm</pre>
+    <p>Step 1: Move the arm to the <strong style="font-weight:500">middle of all joint ranges</strong> (the "rest" pose). Press Enter.<br>Step 2: Move each joint through its <strong style="font-weight:500">full range of motion</strong> — all the way to one end, then all the way to the other. The calibration records the min/max counts.</p>
+    <p><strong style="font-weight:500">Leader calibration:</strong></p>
+    <pre>lerobot-calibrate \
+    --teleop.type=so101_leader \
+    --teleop.port=/dev/ttyUSB0 \
+    --teleop.id=my_leader_arm</pre>
+    <div class="ok-box">After both calibrations succeed, your robot is physically ready. The calibration file is saved in ~/.cache/lerobot/calibration/ and is reused for all future sessions.</div>
+  </div>
+</div>
+
+<div class="step-block">
+  <div class="step-head"><span class="step-n">5</span><span class="step-title">Test teleoperation</span><span class="step-tag tag-sw">software</span></div>
+  <div class="step-body">
+    <p>After calibration, follow the imitation learning tutorial linked from the SO-101 docs page: <code>huggingface.co/docs/lerobot/il_robots</code>. The next steps there cover:</p>
+    <table class="t">
+      <tr><th>Stage</th><th>What you do</th></tr>
+      <tr><td>Teleoperation test</td><td>Move leader, follower mirrors in real time</td></tr>
+      <tr><td>Record dataset</td><td>Collect 50+ demonstrations of pick-and-place</td></tr>
+      <tr><td>Train policy (ACT)</td><td>Run lerobot-train with your dataset</td></tr>
+      <tr><td>Evaluate</td><td>Deploy policy on follower arm</td></tr>
+    </table>
+  </div>
+</div>
+</div>
+
+<div id="panel-wowrobo" class="panel">
+<h2>WOWROBO quickstart card — critical points</h2>
+<p class="subtitle">Your physical quickstart card (from the image) contains key specs that differ from generic SO-101 docs. These must be followed exactly.</p>
+
+<div class="step-block">
+  <div class="step-head"><span class="step-n warn">!</span><span class="step-title">Power supply: leader and follower are DIFFERENT</span><span class="step-tag tag-crit">critical</span></div>
+  <div class="step-body">
+    <div class="danger-box">The two arms use different voltages. Swapping them will damage the servos.</div>
+    <table class="t">
+      <tr><th>Arm</th><th>Required Power Supply</th><th>Why</th></tr>
+      <tr><td>Leader arm</td><td>5V / 6A</td><td>Lower-ratio motors need less voltage; 12V would overstress them</td></tr>
+      <tr><td>Follower arm</td><td>12V / 8A</td><td>High-torque 1/345 motors rated for 12V @ 30 kg·cm</td></tr>
+    </table>
+    <div class="warn-box">Your quickstart card explicitly states: "Leader Arm: Connect to 5V/6A power supply. Follower Arm: Connect to 12V/8A power supply." Double-check this before powering on.</div>
+  </div>
+</div>
+
+<div class="step-block">
+  <div class="step-head"><span class="step-n warn">!</span><span class="step-title">Do NOT manually modify servo parameters</span><span class="step-tag tag-crit">critical</span></div>
+  <div class="step-body">
+    <p>Your card says: <em>"It is recommended not to manually modify servo parameters until you are thoroughly familiar with the process."</em></p>
+    <p>This means: do NOT use the Feetech servo configuration tool (SCSCL) to change PID gains, speed limits, or deadband settings unless you know exactly what you are doing. The motors are pre-configured at the factory for SO-101 operation.</p>
+    <div class="ok-box">The lerobot-setup-motors command only sets ID and baudrate — those are safe to change. Everything else: leave at factory defaults until you are fully operational.</div>
+  </div>
+</div>
+
+<div class="step-block">
+  <div class="step-head"><span class="step-n warn">!</span><span class="step-title">Calibration direction matters — watch Servo #3 (Elbow)</span><span class="step-tag tag-crit">critical</span></div>
+  <div class="step-body">
+    <p>Your card says: <em>"Incorrect calibration directions may cause servos to move toward mechanical limits, potentially causing overload or servo damage, particularly Servo #3 on the follower arm."</em></p>
+    <p>During calibration, when the script asks you to move joints through their range:</p>
+    <div class="danger-box">Move Servo #3 (Elbow Flex) in the CORRECT direction as shown in the calibration video. Moving it the wrong way during calibration causes the follower to immediately slam into a limit stop on first teleoperation — this can break the physical structure or burn out the motor.</div>
+    <p>Watch the official calibration video before doing this step: <code>youtube.com/watch?v=70GuJf2jbYk</code> (timestamp 1:06:32 shows baud rate, configuration, and calibration).</p>
+  </div>
+</div>
+
+<div class="step-block">
+  <div class="step-head"><span class="step-n">3</span><span class="step-title">Maximum payload is 400 grams</span><span class="step-tag tag-hw">hardware</span></div>
+  <div class="step-body">
+    <p>Your card states: "The recommended maximum payload for this robotic arm is 400 grams."</p>
+    <p>For your pick-and-place task, keep the pick object under 400g. The STS3215 at 1/345 gearing provides 30 kg·cm stall torque, but extended load above 400g at full arm extension will trigger overload protection (80% stall, 2s timeout) and eventually burn out motors.</p>
+    <table class="t">
+      <tr><th>Object</th><th>OK?</th></tr>
+      <tr><td>Small cube, bottle cap, light box (&lt;200g)</td><td>Safe for long-duration testing</td></tr>
+      <tr><td>Medium object 200–400g</td><td>Safe, but avoid extended hold at full extension</td></tr>
+      <tr><td>Over 400g</td><td>Do not attempt — servo damage risk</td></tr>
+    </table>
+  </div>
+</div>
+
+<div class="step-block">
+  <div class="step-head"><span class="step-n">4</span><span class="step-title">Warranty notice</span><span class="step-tag tag-hw">hardware</span></div>
+  <div class="step-body">
+    <p>"Servo damages caused by improper operation (such as overload or burnout) are not covered by the warranty."</p>
+    <p>This directly means: if you skip calibration and run the policy, if you exceed 400g payload, or if you connect the wrong power supply, any servo damage is out-of-pocket. Follow the steps in order.</p>
+  </div>
+</div>
+
+<div class="step-block">
+  <div class="step-head"><span class="step-n">5</span><span class="step-title">Camera module installation</span><span class="step-tag tag-hw">hardware</span></div>
+  <div class="step-body">
+    <p>Your card says: "For camera module installation, please refer to the following video" with the same YouTube link. The camera setup (mount angle, calibration) is covered in that video.</p>
+    <p>Community support: Discord at <code>discord.gg/dhTGTVJQC4</code></p>
+  </div>
+</div>
+</div>
+
+<div id="panel-align" class="panel">
+<h2>Does your architecture plan align with the official docs?</h2>
+<p class="subtitle">Cross-reference of the refined architecture plan vs. official HF SO-101 docs + WOWROBO quickstart. Verdict, differences, and what to fix.</p>
+
+<div class="verdict">
+  <div class="v-pct">78%</div>
+  <div class="v-label">Plan aligns with official process</div>
+  <div class="v-body">The strategic architecture is solid and aligns well with what the official docs describe. However, there are 4 specific corrections needed — mostly around the updated CLI commands, power supply specs, and motor gear ratio details. None of these break the overall plan; they are fix-before-you-run items.</div>
+</div>
+
+<div class="align-row">
+<div class="align-card">
+  <h3>What aligns correctly</h3>
+  <div class="align-item"><span class="icon ok">✓</span>LeRobot as the central framework — correct, it's the official tool</div>
+  <div class="align-item"><span class="icon ok">✓</span>Feetech SDK installation via pip install -e "[feetech]"</div>
+  <div class="align-item"><span class="icon ok">✓</span>Two-arm teleoperation concept (leader mirrors to follower)</div>
+  <div class="align-item"><span class="icon ok">✓</span>ACT policy for imitation learning — exact match with HF recommendation</div>
+  <div class="align-item"><span class="icon ok">✓</span>Pretrained SO-101 checkpoint usage before re-training</div>
+  <div class="align-item"><span class="icon ok">✓</span>50+ teleop demonstrations for dataset collection</div>
+  <div class="align-item"><span class="icon ok">✓</span>USB port identification step included</div>
+  <div class="align-item"><span class="icon ok">✓</span>Servo ID assignment before daisy-chaining</div>
+  <div class="align-item"><span class="icon ok">✓</span>Calibration as mandatory step before operation</div>
+  <div class="align-item"><span class="icon ok">✓</span>MuJoCo simulation for safe pre-deployment testing</div>
+  <div class="align-item"><span class="icon ok">✓</span>MoveIt2 + BehaviorTree for classical planning layer</div>
+  <div class="align-item"><span class="icon ok">✓</span>RealSense camera for RGB-D perception</div>
+</div>
+<div class="align-card">
+  <h3>What needs correction</h3>
+  <div class="align-item"><span class="icon fix">!</span>Old CLI commands used — must update to new lerobot-* CLI</div>
+  <div class="align-item"><span class="icon fix">!</span>Power supply voltages not distinguished (5V leader vs 12V follower)</div>
+  <div class="align-item"><span class="icon fix">!</span>Motor gear ratios treated as identical — leader uses mixed ratios</div>
+  <div class="align-item"><span class="icon fix">!</span>Elbow servo calibration direction warning not mentioned</div>
+  <div class="align-item"><span class="icon miss">✗</span>400g payload limit not mentioned anywhere in the plan</div>
+  <div class="align-item"><span class="icon miss">✗</span>Servo ID assignment order (gripper first = ID 6 → shoulder last = ID 1) not specified</div>
+  <div class="align-item"><span class="icon ok">✓</span>CPU-only constraint workarounds are correct and valid</div>
+  <div class="align-item"><span class="icon ok">✓</span>No-training-needed approach using pretrained checkpoint is valid</div>
+</div>
+</div>
+
+<h2 style="margin-bottom:6px;margin-top:4px">Specific differences to fix before running</h2>
+<p class="subtitle" style="margin-bottom:14px">These are concrete command/spec changes — not architectural changes.</p>
+
+<div class="diff-row">
+  <span class="diff-label lbl-fix">update cmd</span>
+  <div class="diff-text">Your plan uses <code>python lerobot/scripts/configure_motor.py</code>. The official docs now use <strong>lerobot-setup-motors</strong> (LeRobot v0.4.3 CLI). Replace every <code>python lerobot/scripts/...</code> command with the corresponding <code>lerobot-*</code> CLI command.</div>
+</div>
+<div class="diff-row">
+  <span class="diff-label lbl-fix">update cmd</span>
+  <div class="diff-text">Your plan uses <code>python lerobot/scripts/control_robot.py calibrate</code>. Replace with: <strong>lerobot-calibrate --robot.type=so101_follower</strong> and <strong>lerobot-calibrate --teleop.type=so101_leader</strong>.</div>
+</div>
+<div class="diff-row">
+  <span class="diff-label lbl-add">add step</span>
+  <div class="diff-text">Your plan does not mention the <strong>power supply difference</strong>. Add this as the very first hardware check: Leader = 5V/6A, Follower = 12V/8A. These come from your WOWROBO quickstart card and must be followed before powering on.</div>
+</div>
+<div class="diff-row">
+  <span class="diff-label lbl-add">add step</span>
+  <div class="diff-text">Your plan treats both arms as having identical STS3215 1/345 motors. The <strong>leader arm uses different gear ratios</strong>: J1 and J3 use 1/191, J4/J5/Gripper use 1/147. This affects torque limits and speed expectations for the leader. The lerobot-setup-motors command handles this automatically if you use the correct --teleop.type=so101_leader flag.</div>
+</div>
+<div class="diff-row">
+  <span class="diff-label lbl-add">add step</span>
+  <div class="diff-text">Add a <strong>calibration direction warning</strong> specifically for Servo #3 (Elbow). Wrong direction during calibration causes the arm to immediately slam into limits on first motion. Watch the YouTube video at the elbow calibration timestamp before proceeding.</div>
+</div>
+<div class="diff-row">
+  <span class="diff-label lbl-add">add step</span>
+  <div class="diff-text">Add <strong>400g payload limit</strong> as a hard constraint in your task design. Your pick-and-place object must be confirmed under 400g before recording any demonstrations.</div>
+</div>
+<div class="diff-row">
+  <span class="diff-label lbl-ok">verified ok</span>
+  <div class="diff-text">Your decision to <strong>skip GPU-heavy components</strong> (FoundationPose → PnP, Isaac Lab → MuJoCo, no diffusion training) is fully compatible with the official docs. The official docs make no GPU requirement for the base setup + ACT inference path.</div>
+</div>
+<div class="diff-row">
+  <span class="diff-label lbl-ok">verified ok</span>
+  <div class="diff-text">Your <strong>MoveIt2 + BehaviorTree</strong> planning layer is an extension on top of the official flow, not a replacement. The official docs cover only LeRobot teleoperation → ACT; your plan correctly adds the classical planning layer on top for production reliability.</div>
+</div>
+
+<div class="ok-box" style="margin-top:16px">Overall verdict: your plan is architecturally sound. Fix the 6 items above (CLI commands, power supplies, gear ratios, calibration direction, payload limit, servo ID order), then follow the official docs for the hardware bringup. The software architecture on top is valid and well-designed for a CPU-only Ubuntu system.</div>
+</div>
+</div>
+<script>
+function switchTab(id){
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+  document.getElementById('panel-'+id).classList.add('active');
+  event.target.classList.add('active');
+}
+</script>

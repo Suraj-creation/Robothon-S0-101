@@ -1,0 +1,45 @@
+{
+  "canonical_home": {
+    "shoulder_pan.pos": 5.58,
+    "shoulder_lift.pos": -68.58,
+    "elbow_flex.pos": 59.88,
+    "wrist_flex.pos": 68.52,
+    "wrist_roll.pos": 6.78,
+    "gripper.pos": 13.45
+  },
+  "per_task_starts": {
+    "pick": {
+      "shoulder_pan.pos": 5.58,
+      "shoulder_lift.pos": -68.58,
+      "elbow_flex.pos": 59.88,
+      "wrist_flex.pos": 68.52,
+      "wrist_roll.pos": 6.78,
+      "gripper.pos": 13.45
+    },
+    "plug": {
+      "shoulder_pan.pos": -22.97,
+      "shoulder_lift.pos": -76.32,
+      "elbow_flex.pos": 60.76,
+      "wrist_flex.pos": 52.06,
+      "wrist_roll.pos": -23.41,
+      "gripper.pos": 13.26
+    },
+    "pour": {
+      "shoulder_pan.pos": -16.94,
+      "shoulder_lift.pos": -78.43,
+      "elbow_flex.pos": 72.94,
+      "wrist_flex.pos": 58.69,
+      "wrist_roll.pos": -36.97,
+      "gripper.pos": 26.94
+    }
+  },
+  "joint_names": [
+    "shoulder_pan.pos",
+    "shoulder_lift.pos",
+    "elbow_flex.pos",
+    "wrist_flex.pos",
+    "wrist_roll.pos",
+    "gripper.pos"
+  ],
+  "notes": "canonical_home is the pose to drive the follower to BEFORE the autonomous sequence starts (and between phases). It is the average of the first-frame states across the first 5 episodes of so101_pick_v1. per_task_starts shows each task's natural starting pose for reference."
+}

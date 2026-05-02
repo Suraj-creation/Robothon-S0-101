@@ -2,11 +2,25 @@
 
 This repository contains the **end-to-end pipeline** for the hackathon’s **three SO-101 tasks** on a **MacBook Air M4** with a **WOWROBO SO-ARM101** (LeRobot **SO101**) setup: teleoperation, LeRobot datasets, **ACT (Action Chunking Transformer)** training, optional **GPU training on Google Colab**, and **autonomous execution** of all three tasks in sequence without operator intervention during the run.
 
+### ACT training status — all three tasks
+
+**Separate ACT policies were trained for every Robothon task:** **pick & place (Task 1)**, **charger plug (Task 2)**, and **liquid pour (Task 3)** — each with its own `lerobot-train` run (`scripts/task*_train.sh` or chained `./scripts/train_all.sh`), using the collected demos and matching hyperparameters in `scripts/task*_env.sh`. Optional **GPU retraining / refinement** uses the same ACT architecture via [`cloud/lerobot_train_colab.ipynb`](cloud/lerobot_train_colab.ipynb) with datasets on the Hub.
+
+**Where the weights live:**
+
+| Task | Policy run name (local `outputs/`) | Published in this GitHub repo |
+|------|-------------------------------------|-------------------------------|
+| Task 1 — Pick | `outputs/act_pick_v1/` | Yes — [`models/act_pick_v1/`](models/act_pick_v1/) (~82 MB) |
+| Task 2 — Plug | `outputs/act_plug_v1/` | Copy `checkpoints/last/pretrained_model` → `models/act_plug_v1/` if you want it on GitHub (same layout as Task 1) |
+| Task 3 — Pour | `outputs/act_pour_v1/` | Same — `models/act_pour_v1/` |
+
+Training artifacts under `outputs/` remain **gitignored** by default (large checkpoints). Only bundles you explicitly copy into [`models/`](models/) are versioned here. You can also host policies as **Hugging Face Models** (e.g. after Colab) for `huggingface-cli download`.
+
 **Public repo:** [github.com/Suraj-creation/Robothon-S0-101](https://github.com/Suraj-creation/Robothon-S0-101)
 
 **Hugging Face datasets (mirrors of local demos):** [SurajCreation — dataset activity](https://huggingface.co/SurajCreation/activity/datasets) — includes [`so101_pick_v1`](https://huggingface.co/datasets/SurajCreation/so101_pick_v1), [`so101_plug_v1`](https://huggingface.co/datasets/SurajCreation/so101_plug_v1), and [`so101_pour_v1`](https://huggingface.co/datasets/SurajCreation/so101_pour_v1).
 
-**Published Task 1 ACT weights (this repo):** [`models/act_pick_v1/`](models/act_pick_v1/) — LeRobot `pretrained_model` bundle (~82 MB). Use `--policy.path=models/act_pick_v1` after clone. See [`models/README.md`](models/README.md).
+**ACT weights on GitHub:** Task 1 is vendored as a full LeRobot `pretrained_model` bundle in [`models/act_pick_v1/`](models/act_pick_v1/) (~82 MB). Use `--policy.path=models/act_pick_v1` after clone. Tasks 2–3 use the same file layout under `outputs/act_*_v1/checkpoints/last/pretrained_model` locally; add them under `models/act_plug_v1` and `models/act_pour_v1` to mirror on GitHub. Details: [`models/README.md`](models/README.md).
 
 ---
 
@@ -91,7 +105,7 @@ Optional: YOLO11n for coarse object presence / phase gating (not required for co
 
 - **Per-task env scripts** (`scripts/task1_env.sh` … `task3_env.sh`): ports, camera indices, repo IDs, hyperparameters, `--dataset.root` for LeRobot 0.5.x.
 - **Recording**: `task*_record.sh`, **training**: `task*_train.sh`, **eval**: `task*_eval.sh`.
-- **One-shot local training**: [`scripts/train_all.sh`](scripts/train_all.sh) chains all three trainings (with logging under `outputs/training_logs/`).
+- **One-shot local training**: [`scripts/train_all.sh`](scripts/train_all.sh) chains **all three ACT trainings** sequentially (with logging under `outputs/training_logs/`).
 - **Autonomous single-task deploy**: e.g. [`scripts/task1_autonomous_pick_place.sh`](scripts/task1_autonomous_pick_place.sh) for Task-1-only policy rollout with `lerobot-record --policy.path=...`.
 
 ### Full autonomous sequence (three tasks)
@@ -120,7 +134,7 @@ This is the **“press go once”** path for the competition narrative: operator
 | [`SO101_Task1_PickPlace_Refined_Architecture.md`](SO101_Task1_PickPlace_Refined_Architecture.md) | Early architecture notes (superseded by automation plan for Mac path) |
 | [`environment.yml`](environment.yml) | Conda-style dependency snapshot |
 | [`scripts/`](scripts/) | All shell entrypoints, `go_home.py`, `capture_home.py`, `camera_probe.py`, full-demo runners |
-| [`models/`](models/) | **Published ACT checkpoints** (e.g. Task 1 `act_pick_v1`) for GitHub — not the gitignored `outputs/` training tree |
+| [`models/`](models/) | **Published ACT checkpoints** (Task 1 `act_pick_v1` on GitHub; add plug/pour here to mirror) — not the full gitignored `outputs/` tree |
 | [`cloud/`](cloud/) | Colab notebook, cloud training docs, Modal script |
 | [`yolo11n.pt`](yolo11n.pt) | Pretrained YOLO11n weights for optional gating |
 

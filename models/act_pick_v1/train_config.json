@@ -1,7 +1,7 @@
 {
     "dataset": {
-        "repo_id": "local/so101_pick_v1",
-        "root": "/Users/udbhavkulkarni/.cache/huggingface/lerobot/local/so101_pick_v1",
+        "repo_id": "SurajCreation/so101_pick_v1",
+        "root": "/root/.cache/huggingface/lerobot/SurajCreation/so101_pick_v1",
         "episodes": null,
         "image_transforms": {
             "enable": false,
@@ -115,11 +115,11 @@
                 ]
             }
         },
-        "device": "cpu",
+        "device": "cuda",
         "use_amp": false,
         "use_peft": false,
         "push_to_hub": false,
-        "repo_id": null,
+        "repo_id": "test_model",
         "private": null,
         "tags": null,
         "license": null,
@@ -135,9 +135,9 @@
         "pretrained_backbone_weights": "ResNet18_Weights.IMAGENET1K_V1",
         "replace_final_stride_with_dilation": false,
         "pre_norm": false,
-        "dim_model": 256,
-        "n_heads": 4,
-        "dim_feedforward": 1600,
+        "dim_model": 512,
+        "n_heads": 8,
+        "dim_feedforward": 3200,
         "feedforward_activation": "relu",
         "n_encoder_layers": 4,
         "n_decoder_layers": 1,
@@ -151,19 +151,18 @@
         "optimizer_weight_decay": 0.0001,
         "optimizer_lr_backbone": 1e-05
     },
-    "output_dir": "outputs/act_pick_v1",
-    "job_name": "act_pick_v1",
+    "output_dir": "/root/test_run",
+    "job_name": "test_run",
     "resume": false,
     "seed": 1000,
-    "cudnn_deterministic": false,
-    "num_workers": 4,
-    "batch_size": 4,
-    "steps": 8000,
+    "num_workers": 0,
+    "batch_size": 8,
+    "steps": 1000,
     "eval_freq": 20000,
-    "log_freq": 200,
+    "log_freq": 50,
     "tolerance_s": 0.0001,
     "save_checkpoint": true,
-    "save_freq": 2000,
+    "save_freq": 200,
     "use_policy_training_preset": true,
     "optimizer": {
         "type": "adamw",
@@ -189,8 +188,7 @@
         "entity": null,
         "notes": null,
         "run_id": null,
-        "mode": null,
-        "add_tags": true
+        "mode": null
     },
     "peft": null,
     "use_rabc": false,

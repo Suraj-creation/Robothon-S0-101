@@ -14,7 +14,7 @@
     {
       "registry_name": "device_processor",
       "config": {
-        "device": "cpu",
+        "device": "cuda",
         "float_dtype": null
       }
     },
